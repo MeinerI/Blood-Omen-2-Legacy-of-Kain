@@ -1,0 +1,23 @@
+Структура модели ( с ошибками )
+
+model...		6D 6F 64 65 6C 00 00 00
+symlist.
+default.
+rmd.....		72 6D 64 00 00 00 00 00
+default.
+position		70 6F 73 69 74 69 6F 6E   список координат
+normals.		6E 6F 72 6D 61 6C 73 00   нормалей
+prims...		70 72 69 6D 73 00 00 00   грани
+textures		74 65 78 74 75 72 65 73   текстурные индексы ?
+uvs.....		75 76 73 00 00 00 00 00   текстурные координаты
+uvs.....		может быть два набора     
+mdlattr.		6D 64 6C 61 74 74 72 00		хранят геомерию 
+default.
+mtlctrl.		6D 74 6C 63 74 72 6C 00   
+mlyrcolr		6D 6C 79 72 63 6F 6C 72   
+mlyrctrl		6D 6C 79 72 63 74 72 6C   
+texture.		74 65 78 74 75 72 65 00   
+vtxweigh		76 74 78 77 65 69 67 68   
+jointidx		6A 6F 69 6E 74 69 64 78   
+collmodc		63 6F 6C 6C 6D 6F 64 63		или	mdlattr.
+default.

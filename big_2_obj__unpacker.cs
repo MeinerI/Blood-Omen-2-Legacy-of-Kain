@@ -185,6 +185,8 @@ sealed class big2obj
 
 														prims_str.Add( "f " + (f1+1) + " " + (f2+1) + " " + (f3+1) ) ; 
 												}
+
+											primsss_count.Clear() ;
 										}
 
 										primsss_count.Clear() ;

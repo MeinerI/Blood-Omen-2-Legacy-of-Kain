@@ -84,39 +84,19 @@ new List<string>() { 		//	список строк
 
 @"
 
-; FBX 6.1.0 project file
-; Copyright (C) 1997-2008 Autodesk Inc. and/or its licensors.
-; All rights reserved.
+; FBX X.X.X project file
 ; ----------------------------------------------------
 
-FBXHeaderExtension:  {
-     ; header information: global file information.
-}CreationTime: ""2008-03-04 14:08:13:145""
-Creator: ""FBX SDK/FBX Plugins build 20080314""
-
+; FBXHeaderExtension : {}
+; GlobalSettings : {}
+; Documents Description
+; Documents : {}
+; Document References
+; References : {}
 ; Object definitions
-;------------------------------------------------------------------
-Definitions:  {
-    Count: 1
-    ObjectType: ""Model"" {
-        Count: 1  ; 1 nodes in this scene
-    }
-}
-
+; Definitions : {}
 ; Object properties
-;------------------------------------------------------------------
-Objects:  {
-    Model: ""Model::Mesh"", ""Mesh"" {
-        Version: 232
-        Properties60:  {            
-						Property: ""Lcl Translation"", ""Lcl Translation"", ""A+"",0,0,0
-            Property: ""Lcl Rotation"", ""Lcl Rotation"", ""A+"",0,0,0
-            Property: ""Lcl Scaling"", ""Lcl Scaling"", ""A+"",1,1,1
-            ; etc: description of object ""Mesh"".
-        }
-        NodeAttributeName: ""Geometry::Mesh""
-    }
-}
+; Objects : {
 
 ",
 
@@ -371,14 +351,11 @@ writePath , 						//	в файл
 new List<string>() { 		//	список строк
 
 @"
-
-; Object connections  
-;------------------------------------------------------------------  
-
-;Takes section  
-;----------------------------------------------------  
-"
 }
+; Object connections  
+; Connections : {}
+; Takes section  
+; Takes : {}
 );
 
 //жжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжж

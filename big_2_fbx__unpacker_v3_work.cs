@@ -1,4 +1,5 @@
 // issue : некоторые модели не работают , потому что почему то "дублируется" блок PolygonVertexIndex без закрывающихся скобок }
+// нужно объединить все грани сабмешей в один меш
 
 //жжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжж
 	using System;using System.IO;using System.Linq;using System.Text;using System.Collections;using System.Collections.Generic;

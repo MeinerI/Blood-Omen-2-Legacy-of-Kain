@@ -1,18 +1,18 @@
-ñïèñîê íàçâàíèé âàæíûõ áëîêîâ â big-ôàéëàõ
- 
-XX XX XX XX		çàãîëîâîê 
-XX XX XX XX		áëîêà
-XX XX XX XX		ðàçìåð áëîêà
- 
+список названий важных блоков в big-файлах
+
+XX XX XX XX		заголовок 
+XX XX XX XX		блока
+XX XX XX XX		размер блока
+
 61 6E 69 6D 61 74 69 6F		animatio		
 61 6E 69 6D 72 65 65 6C		animreel		
 61 74 74 72 73 00 00 00		attrs...		
 62 70 61 63 6B 61 67 65		bpackage		
 63 65 6C 6C 61 74 74 72		cellattr		
-63 65 6C 6C 62 73 70 00		cellbsp.		õðàíÿò ãåîìåðèþ
-63 65 6C 6C 69 67 68 74		cellight		õðàíÿò ãåîìåðèþ
-63 65 6C 6C 67 72 75 70		cellgrup		õðàíÿò ãåîìåðèþ
-63 65 6C 6C 6D 64 6C 73		cellmdls		õðàíÿò ãåîìåðèþ
+63 65 6C 6C 62 73 70 00		cellbsp.		хранят геомерию
+63 65 6C 6C 69 67 68 74		cellight		хранят геомерию
+63 65 6C 6C 67 72 75 70		cellgrup		хранят геомерию
+63 65 6C 6C 6D 64 6C 73		cellmdls		хранят геомерию
 63 65 6C 6C 6D 61 72 6B		cellmark
 63 65 6C 6C 73 00 00 00		cells...
 64 62 67 6D 6F 64 65 6C		dbgmodel		
@@ -36,7 +36,7 @@ XX XX XX XX		ðàçìåð áëîêà
 73 61 6D 70 6C 65 00 00		sample..		
 73 6B 65 6C 65 74 6F 6E		skeleton		
 73 6F 75 6E 64 00 00 00		sound...		
-73 74 72 6D 66 69 6C 65		strmfile		çàãîëîâî÷íûå .h ôàéëû 
+73 74 72 6D 66 69 6C 65		strmfile		заголовочные .h файлы 
 73 74 72 74 61 62 6C 65		strtable		
 73 79 6D 6C 69 73 74 00		symlist.		
 74 65 72 72 61 69 6E 73		terrains		
@@ -44,4 +44,4 @@ XX XX XX XX		ðàçìåð áëîêà
 74 75 6E 65 64 61 74 61		tunedata		
 75 76 63 6F 6F 72 64 73		uvcoords		
 76 63 6F 6C 61 72 72 00		vcolarr.		
-76 65 72 74 61 72 72 00		vertarr.		õðàíÿò ãåîìåðèþ
+76 65 72 74 61 72 72 00		vertarr.		хранят геомерию

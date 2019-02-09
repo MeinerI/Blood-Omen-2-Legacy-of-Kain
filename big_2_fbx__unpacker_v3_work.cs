@@ -1,6 +1,3 @@
-// issue : некоторые модели не работают , потому что почему то "дублируется" блок PolygonVertexIndex без закрывающихся скобок }
-// нужно объединить все грани сабмешей в один меш
-
 //жжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжж
 	using System;using System.IO;using System.Linq;using System.Text;using System.Collections;using System.Collections.Generic;
 //жжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжж
@@ -10,9 +7,10 @@ sealed class big2fbx
 		static string big_path  ; // хранит путь к файлу *.big
 		static string writePath ; // хранит путь к файлу *[i].fbx
 
-		static int v_count; // хранит количество вершин , которому будет равно кол-во нормалей 
+		static int v_count = 0 ; // хранит количество вершин , которому будет равно кол-во нормалей 
+		static int f_count_sum = 0 ; // хранит общее количество граней всех сабмешей
 
-		static int uv_index_count; // чтобы UVIndex был виден в блоке LayerElementUV
+		static int uv_index_count = 0; // чтобы UVIndex был виден в блоке LayerElementUV
 		static List<string> uv_str_dub;	// дублирующее значение UVIndex для второго набора
 
 		static int   i = 0 ; // индекс в массиве байт всего файла
@@ -48,7 +46,8 @@ sealed class big2fbx
 
 				List<byte> vertexs_count = new List<byte>() ; 	List<string> vertex_str = new List<string>();		// вершины
 				List<byte> normals_count = new List<byte>() ; 	List<string> normal_str = new List<string>();		// нормали
-				List<byte> primsss_count = new List<byte>() ; 	List<string> prims_str = new List<string>();		// грани
+				List<byte> primsss_count = new List<byte>() ; 	List<string> prims_str = new List<string>();		// для всего блока граней
+																												List<string> prims_str_f = new List<string>();	// только грани
 				List<byte> vt_count = new List<byte>() ;				List<string> vt_str = new List<string>();				// uvs
 				List<byte> uv_index = new List<byte>() ;				List<string> uv_str = new List<string>();				// uvs_index
 
@@ -103,7 +102,7 @@ sealed class big2fbx
 								//--------------------------------------------------------------------------------------------------------------
 
 										big_path = Path.GetDirectoryName(file);
-										writePath = big_path + "/" + Path.GetFileNameWithoutExtension(file) + "___" + files_name_counter + ".fbx" ;
+										writePath = big_path + "/" + Path.GetFileNameWithoutExtension(file) + "___" + files_name_counter + ".fbx" ; //		.fbx		.obj
 										files_name_counter++ ; // нашли "вершины" - увеличили счётчик файденных моделей // это может стоять после всех "блоков" модели?
 										if (File.Exists(writePath)) File.Delete(writePath);
 
@@ -279,6 +278,7 @@ Objects:
 												byte[] f_count_four_bytes_int = { // читаем количество строчек f в файле obj // c 24 по 27
 												array1d[id+0+offset] ,	array1d[id+1+offset] ,	array1d[id+2+offset] ,	array1d[id+3+offset] } ;	
 												int f_count = BitConverter.ToInt32 ( f_count_four_bytes_int , 0 ) ; // количество строк
+												f_count_sum = f_count_sum + f_count; // общая сумма граней во всех сабмешах
 
 												byte[] f_count_four_bytes_int_size = { // читаем количество байт , которых нужно умножить на два // c 28 по 31
 												array1d[id+4+0+offset] ,	array1d[id+4+1+offset] ,	array1d[id+4+2+offset] ,	array1d[id+4+3+offset] } ;	
@@ -295,8 +295,6 @@ Objects:
 												if ( f_count % 2 != 0 ) offset = offset + 2 ;
 										//--------------------------------------------------------------------------------------------------------------
 
-												prims_str.Add("\nPolygonVertexIndex: *" + f_count + " {" + "\na: ");
-
 												for ( int iii = 0 ; iii < primsss_count.Count ; iii+=6 )
 												{
 														byte[] twoBytes1 = { primsss_count[iii+0] , primsss_count[iii+1] } ; // 00 00 // 03 00 
@@ -309,15 +307,22 @@ Objects:
 
 														string faces = String.Format ( "{0}, {1}, {2}" , f1 , f2 , ((f3 + 1) / (-1)) ) ;
 														if (iii != primsss_count.Count-6) faces = faces + ",";
-														prims_str.Add( faces ) ;
+														prims_str_f.Add( faces ) ;
 													//prims_str.Add( f1 + "," + f2+ "," + ((f3 + 1) / (-1)) + "," ) ; 
 												}
 											primsss_count.Clear() ;
 										}
 
-										prims_str.Add( "}\n" ) ;
 										primsss_count.Clear() ;
-										AppendAllTextToObjFile(writePath, prims_str);
+
+										prims_str.Add("\nPolygonVertexIndex: *" + f_count_sum + " {" + "\na: "); // переносится ниже для добавления строки с общим количеством граней
+/*!*/								f_count_sum = 0 ;
+										prims_str.AddRange(prims_str_f); // добавляем список всех граней между { } 
+										prims_str_f.Clear();
+										prims_str.Add( "} ; закрывает блок PolygonVertexIndex \n" ) ;
+
+										AppendAllTextToObjFile(writePath, prims_str);	// записываем грани в файл
+
 										AppendAllTextToObjFile(writePath, new List<string>() { "GeometryVersion: 124" , "" } ) ;
 
 /**//**//**//**//**//**//**//**//**//**//**//**//**//**//**//**//**//**//**//**//**//**//**//**/
@@ -362,6 +367,8 @@ for (int ion = 0 ; ion < v_count ; ion++ )
 	index_of_normals = index_of_normals + ion ;
 	if (ion != v_count-1) index_of_normals = index_of_normals + ",";
 }
+
+/*!*/ v_count = 0 ;
 
 string i_normals = new string(index_of_normals.ToArray());
 AppendAllTextToObjFile(writePath, 
@@ -449,6 +456,9 @@ new List<string>() { 		//	список строк
 										if (array1d[i+16]==0x01) AppendAllTextToObjFile(writePath, uv_str); 
 										if (array1d[i+16]==0x00) AppendAllTextToObjFile(writePath, uv_str_dub); 
 
+/*!*/								uv_str.Clear();
+/*!*/								uv_str_dub.Clear();
+
 AppendAllTextToObjFile(	//	метод пишет
 writePath , 						//	в файл
 new List<string>() { 		//	список строк
@@ -496,6 +506,8 @@ new List<string>() { 		//	список строк
 						
 								if ( i == i_end - 42 ) // записываем один раз в конец файла
 								{
+
+/*!*/ uv_index_count = 0 ;
 
 AppendAllTextToObjFile(	//	метод пишет
 writePath , 						//	в файл

@@ -5,7 +5,7 @@
 sealed class big2fbx
 {
 		static string big_path  ; // хранит путь к файлу *.big
-		static string writePath ; // хранит путь к файлу *[i].obj
+		static string writePath ; // хранит путь к файлу *[i].fbx
 
 		static int v_count; // хранит количество вершин , которому будет равно кол-во нормалей 
 
@@ -100,7 +100,7 @@ sealed class big2fbx
 								//--------------------------------------------------------------------------------------------------------------
 
 										big_path = Path.GetDirectoryName(file);
-										writePath = big_path + "/" + Path.GetFileNameWithoutExtension(file) + "___" + files_name_counter + ".obj" ;
+										writePath = big_path + "/" + Path.GetFileNameWithoutExtension(file) + "___" + files_name_counter + ".fbx" ;
 										files_name_counter++ ; // нашли "вершины" - увеличили счётчик файденных моделей // это может стоять после всех "блоков" модели?
 										if (File.Exists(writePath)) File.Delete(writePath);
 
@@ -117,7 +117,8 @@ new List<string>() { 		//	список строк
 @"
 ; ----------------------------------------------------  
 
-FBXHeaderExtension:  {
+FBXHeaderExtension:  
+{
 	FBXHeaderVersion: 1003
 	FBXVersion: 7300
 }
@@ -131,9 +132,11 @@ GlobalSettings:
 
 ; ----------------------------------------------------
 
-Documents:  {
+Documents:  
+{
 	Count: 1
-	Document: 1, """", ""Scene"" {
+	Document: 1, """", ""Scene"" 
+	{
 		RootNode: 0
 	}
 }
@@ -420,7 +423,7 @@ new List<string>() { 		//	список строк
 												string vts = String.Format ( "{0}, {1}" , vu , vv ) ;
 												if (ii != vt_count.Count-8) vts = vts + ",";
 												vt_str.Add( vts ) ;
-											//vt_str.Add( vu + "," + vv  + "," ) ; // записываем строку в файл *.obj
+											//vt_str.Add( vu + "," + vv  + "," ) ; // записываем строку в файл *.fbx
 										}
 
 										vt_str.Add( "}" ) ;
@@ -499,7 +502,7 @@ new List<string>() { 		//	список строк
 		LayerElementMaterial: 0 
 		{
 			Version: 101
-			Name: ""
+			Name: """"
 			MappingInformationType: ""AllSame""
 			ReferenceInformationType: ""IndexToDirect""
 			Materials: *1 {

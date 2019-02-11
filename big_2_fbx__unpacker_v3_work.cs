@@ -1,3 +1,6 @@
+// не получается "прицепить" текстуры :с
+// пока непонятно как задавать слои uvs
+
 //жжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжж
 	using System;using System.IO;using System.Linq;using System.Text;using System.Collections;using System.Collections.Generic;
 //жжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжж
@@ -132,6 +135,8 @@ GlobalSettings:
 	Version: 1000
 }
 
+; ==================================================== 
+; Documents Description
 ; ----------------------------------------------------
 
 Documents:  
@@ -139,12 +144,16 @@ Documents:
 	Count: 1
 	Document: 1, """", ""Scene"" 
 	{
+		;Properties70:  
+		;{
+		;	P: ""SourceObject"", ""object"", """", """"
+		;}
 		RootNode: 0
 	}
 }
 
 ; ==================================================== 
-
+; Document References
 ; ----------------------------------------------------
 
 References:  {
@@ -158,23 +167,38 @@ Definitions:
 {
 	Version: 100
 
-	; Count: 3 ; 
+	;Count: 3 ; количество объектов ?
 
 	ObjectType: ""GlobalSettings"" {
 		Count: 1
 	}
 
-	ObjectType: ""Model"" {
+	ObjectType: ""Texture""
+	{
+		Count: 1
+		PropertyTemplate: ""FbxFileTexture"" {
+		}
+	}
+
+	ObjectType: ""Model"" 
+	{
 		Count: 1 ; 1 nodes в сцене
+		PropertyTemplate: ""FbxNode"" {
+		}
 	}
 
 	ObjectType: ""Geometry"" {
 		Count: 1 ; количество источников геометрии
+		PropertyTemplate: ""FbxMesh"" {
+		}
 	}
 
-	;ObjectType: ""Material"" {
-	;Count: 1 ; количество материалов
-	;}
+	ObjectType: ""Material"" 
+	{
+		Count: 1 ; количество материалов
+		PropertyTemplate: ""FbxSurfacePhong"" {
+		}
+	}
 }
 
 ; ==================================================== 
@@ -336,8 +360,8 @@ new List<string>()
 @"	LayerElementNormal: 0 {
 			Version: 101
 			Name: """"
-			MappingInformationType: ""ByVertex""
-			ReferenceInformationType: ""IndexToDirect""
+			MappingInformationType: ""ByVertex"" ; ByVertice
+			ReferenceInformationType: ""IndexToDirect"" ; Direct
 "
 }
 );
@@ -452,7 +476,7 @@ new List<string>() { 		//	список строк
 										uv_index.Clear() ;
 
 										// добавляем индексы в файл
-										uv_str_dub = uv_str.ToList(); // странно , но работает
+										uv_str_dub = uv_str.ToList(); // странно , но работает // не перепутались ли они местами ?
 										if (array1d[i+16]==0x01) AppendAllTextToObjFile(writePath, uv_str); 
 										if (array1d[i+16]==0x00) AppendAllTextToObjFile(writePath, uv_str_dub); 
 
@@ -518,22 +542,34 @@ new List<string>() { 		//	список строк
 		{
 			Version: 101
 			Name: """"
-			MappingInformationType: ""AllSame""
+			MappingInformationType: ""AllSame"" ; ByPolygon
 			ReferenceInformationType: ""IndexToDirect""
-			Materials: *1 {
-				a: 0
+			Materials: *3 {
+				a: 0,0,0
 			} 
 		}
 
 		Layer: 0 
 		{
 			Version: 100
+
 			LayerElement:  {
 				Type: ""LayerElementNormal""
 				TypedIndex: 0
 			}
+
 			LayerElement:  {
 				Type: ""LayerElementMaterial""
+				TypedIndex: 0
+			}
+
+			LayerElement:  {
+				Type: ""LayerElementUV""
+				TypedIndex: 0
+			}
+
+			LayerElement:  {
+				Type: ""LayerElementUV""
 				TypedIndex: 0
 			}
 		}
@@ -555,7 +591,8 @@ new List<string>() { 		//	список строк
 				TypedIndex: 1
 			}
 		}
-	}	; закрывает Geometry
+
+}	; закрывает Geometry
 
 
 	Model: 3, ""Model::Mesh0"", ""Mesh"" 
@@ -565,11 +602,56 @@ new List<string>() { 		//	список строк
 		{
 			P: ""DefaultAttributeIndex"", ""int"", ""Integer"", """", 0
 		}
+		Shading: T
+		Culling: ""CullingOff""
+	}
+
+
+	Material: 40901968, ""Material::material01"", """" 
+	{
+		Version: 102
+		ShadingModel: ""phong""
+		MultiLayer: 0
+		Properties70:  {
+			P: ""AmbientColor"", ""ColorRGB"", ""Color"", """",0.878431379795074,0.878431379795074,0.878431379795074
+			P: ""DiffuseColor"", ""ColorRGB"", ""Color"", """",0.878431379795074,0.878431379795074,0.878431379795074
+			P: ""TransparentColor"", ""ColorRGB"", ""Color"", """",1,1,1
+			P: ""SpecularColor"", ""ColorRGB"", ""Color"", """",1,1,1
+			P: ""SpecularFactor"", ""double"", ""Number"", """",0.26666667064031
+			P: ""ShininessExponent"", ""double"", ""Number"", """",8.00000066103669
+			P: ""Emissive"", ""Vector3D"", ""Vector"", """",0,0,0
+			P: ""Ambient"", ""Vector3D"", ""Vector"", """",0.878431379795074,0.878431379795074,0.878431379795074
+			P: ""Diffuse"", ""Vector3D"", ""Vector"", """",0.878431379795074,0.878431379795074,0.878431379795074
+			P: ""Specular"", ""Vector3D"", ""Vector"", """",0.26666667064031,0.26666667064031,0.26666667064031
+			P: ""Shininess"", ""double"", ""Number"", """",8.00000066103669
+			P: ""Opacity"", ""double"", ""Number"", """",1
+			P: ""Reflectivity"", ""double"", ""Number"", """",0
+		}
+	}
+
+
+	Texture: 40871600, ""Texture::MP5SIL.BMP"", """" 
+	{
+		Type: ""TextureVideoClip""
+		Version: 202
+		TextureName: ""Texture::MP5SIL.BMP""
+		Properties70:  {
+			P: ""CurrentTextureBlendMode"", ""enum"", """", """",0
+			P: ""UVSet"", ""KString"", """", """", ""UVSet0""
+		}
+		Media: ""Video::MP5SIL.BMP""
+		FileName: ""E:\dev\assimp\assimp-gsoc2012-fbx\test\models-nonbsd\3DS\MP5SIL.BMP""
+		RelativeFilename: ""MP5SIL.BMP""
+		ModelUVTranslation: 0,0
+		ModelUVScaling: 1,1
+		Texture_Alpha_Source: ""None""
+		Cropping: 0,0,0,0
 	}
 
 
 }	; закрывает Objects
 "
+
 ,
 
 @"
@@ -580,10 +662,21 @@ new List<string>() { 		//	список строк
 
 Connections:  
 {
+	; связываем модель со сценой
 	;""Model::Mesh0"", ""Model::RootNode""
 	C: ""OO"",3,0
+
+	; связываем геометрию с моделью
 	;""Geometry::"", ""Model::Mesh0""
 	C: ""OO"",2,3
+	
+	; связываем материал с моделью
+	;Material::material01, Model::Mesh0
+	C: ""OO"",40901968,3
+
+	; связываем текстуру с материалом
+	;Texture::MP5SIL.BMP, Material::material01
+	C: ""OP"",40871600,40901968, ""DiffuseColor""
 }
 
 ; ====================================================

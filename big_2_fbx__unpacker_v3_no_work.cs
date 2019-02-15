@@ -1,6 +1,3 @@
-// не получается "прицепить" текстуры :с
-// пока непонятно как задавать слои uvs
-
 //жжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжж
 	using System;using System.IO;using System.Linq;using System.Text;using System.Collections;using System.Collections.Generic;
 //жжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжж
@@ -434,12 +431,11 @@ new List<string>() { 		//	список строк
 @"
 		LayerElementUV: " + array1d[i+16]
 ,
-
 @"
-		 {
+		{
 			Version: 101
 			Name: """"
-			MappingInformationType: ""ByPolygonVertex""
+			MappingInformationType: ""ByVertex"" ; ByPolygonVertex
 			ReferenceInformationType: ""IndexToDirect""
 			UV: *" + vt_uv + @" { a: "
 }
@@ -487,8 +483,8 @@ AppendAllTextToObjFile(	//	метод пишет
 writePath , 						//	в файл
 new List<string>() { 		//	список строк
 @"
-          }   ;  // закрываем скобки UVIndex
-      }  ; закрываем скобки ""тега"" LayerElementUV
+          }	;	закрываем скобки UVIndex
+      }	; закрываем скобки ""тега"" LayerElementUV
 "
 }
 )
@@ -568,10 +564,10 @@ new List<string>() { 		//	список строк
 				TypedIndex: 0
 			}
 
-			LayerElement:  {
-				Type: ""LayerElementUV""
-				TypedIndex: 0
-			}
+			;LayerElement:  {
+			;	Type: ""LayerElementUV""
+			;	TypedIndex: 0
+			;}
 		}
 
 		Layer: 1 
@@ -579,18 +575,18 @@ new List<string>() { 		//	список строк
 			Version: 100
 			LayerElement:  {
 				Type: ""LayerElementUV""
-				TypedIndex: 0
-			}
-		}
-
-		Layer: 2 
-		{
-			Version: 100
-			LayerElement:  {
-				Type: ""LayerElementUV""
 				TypedIndex: 1
 			}
 		}
+
+		;Layer: 2 
+		;{
+		;	Version: 100
+		;	LayerElement:  {
+		;		Type: ""LayerElementUV""
+		;		TypedIndex: 2
+		;	}
+		;}
 
 }	; закрывает Geometry
 
@@ -630,18 +626,18 @@ new List<string>() { 		//	список строк
 	}
 
 
-	Texture: 40871600, ""Texture::MP5SIL.BMP"", """" 
+	Texture: 40871600, ""Texture::kain_big-0000000016.dds"", """" 
 	{
 		Type: ""TextureVideoClip""
 		Version: 202
-		TextureName: ""Texture::MP5SIL.BMP""
+		TextureName: ""Texture::kain_big-0000000016.dds""
 		Properties70:  {
 			P: ""CurrentTextureBlendMode"", ""enum"", """", """",0
 			P: ""UVSet"", ""KString"", """", """", ""UVSet0""
 		}
-		Media: ""Video::MP5SIL.BMP""
-		FileName: ""E:\dev\assimp\assimp-gsoc2012-fbx\test\models-nonbsd\3DS\MP5SIL.BMP""
-		RelativeFilename: ""MP5SIL.BMP""
+		Media: ""Video::kain_big-0000000016.dds""
+		FileName: ""E:\dev\assimp\assimp-gsoc2012-fbx\test\models-nonbsd\3DS\kain_big-0000000016.dds""
+		RelativeFilename: ""kain_big-0000000016.dds""
 		ModelUVTranslation: 0,0
 		ModelUVScaling: 1,1
 		Texture_Alpha_Source: ""None""
@@ -675,7 +671,7 @@ Connections:
 	C: ""OO"",40901968,3
 
 	; связываем текстуру с материалом
-	;Texture::MP5SIL.BMP, Material::material01
+	;Texture::kain_big-0000000016.dds, Material::material01
 	C: ""OP"",40871600,40901968, ""DiffuseColor""
 }
 

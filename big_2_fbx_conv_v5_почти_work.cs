@@ -1,7 +1,10 @@
 // использовано много лишних тегова со свойствами
 // они были просто скопированы из другого fbx-файла 
+
 // проблема наложения текстур была в теге MappingInformationType
 // теперь ещё нужно разобраться как хранятся "ссылки" на текстуры в big-файлах...
+
+// конвертит только блоки моделей // у блоков ландшафта (cell) другая структура
 
 //жжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжж
 	using System;using System.IO;using System.Linq;using System.Text;using System.Collections;using System.Collections.Generic;
@@ -660,8 +663,9 @@ new List<string>() { 		//	список строк
 										{
 												byte[] fourBytes1 = { vt_count[ii+0] , vt_count[ii+1] , vt_count[ii+2 ] , vt_count[ii+3 ] } ; 
 												byte[] fourBytes2 = { vt_count[ii+4] , vt_count[ii+5] , vt_count[ii+6 ] , vt_count[ii+7 ] } ; 
+
 												float vu = BitConverter.ToSingle(fourBytes1 , 0) ;
-												float vv = BitConverter.ToSingle(fourBytes2 , 0) ;
+												float vv = (-1)*BitConverter.ToSingle(fourBytes2 , 0) ;
 
 												string vts = String.Format ( "{0}, {1}" , vu , vv ) ;
 												if (ii != vt_count.Count-8) vts = vts + ",";

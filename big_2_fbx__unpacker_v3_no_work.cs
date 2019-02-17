@@ -1,3 +1,6 @@
+// использовано много лишних тегова со свойствами
+// они были просто скопированы из другого fbx-файла 
+
 //жжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжж
 	using System;using System.IO;using System.Linq;using System.Text;using System.Collections;using System.Collections.Generic;
 //жжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжж
@@ -112,39 +115,94 @@ AppendAllTextToObjFile(	//	метод пишет
 writePath , 						//	в файл
 new List<string>() { 		//	список строк
 
-@"; " + file // <source_data>file:///C:/file%20name.big</source_data> 
-
-, 
+//@"; " + file // <source_data>file:///C:/file%20name.big</source_data> 
+//, 
 
 @"
-; ----------------------------------------------------  
+; FBX 7.3.0 project file
+; Copyright (C) 1997-2010 Autodesk Inc. and/or its licensors.
+; All rights reserved.
+; ==================================================== 
 
-FBXHeaderExtension:  
-{
+FBXHeaderExtension: {
 	FBXHeaderVersion: 1003
 	FBXVersion: 7300
+	CreationTimeStamp:  {
+		Version: 1000
+		Year: 2019
+		Month: 2
+		Day: 14
+		Hour: 20
+		Minute: 59
+		Second: 44
+		Millisecond: 510
+	}
+	Creator: ""FBX SDK/FBX Plugins version 2013.3""
+	SceneInfo: ""SceneInfo::GlobalInfo"", ""UserData"" {
+		Type: ""UserData""
+		Version: 100
+		MetaData:  {
+			Version: 100
+			Title: """"
+			Subject: """"
+			Author: """"
+			Keywords: """"
+			Revision: """"
+			Comment: """"
+		}
+		Properties70:  {
+			P: ""DocumentUrl"", ""KString"", ""Url"", """", ""C:\1\mdl_castle.fbx""
+			P: ""SrcDocumentUrl"", ""KString"", ""Url"", """", ""C:\1\mdl_castle.fbx""
+			P: ""Original"", ""Compound"", """", """"
+			P: ""Original|ApplicationVendor"", ""KString"", """", """", ""Blender Foundation""
+			P: ""Original|ApplicationName"", ""KString"", """", """", ""Blender (stable FBX IO)""
+			P: ""Original|ApplicationVersion"", ""KString"", """", """", ""2.77 (sub 0)""
+			P: ""Original|DateTime_GMT"", ""DateTime"", """", """", ""01/01/1970 00:00:00.000""
+			P: ""Original|FileName"", ""KString"", """", """", ""/foobar.fbx""
+			P: ""LastSaved"", ""Compound"", """", """"
+			P: ""LastSaved|ApplicationVendor"", ""KString"", """", """", ""Blender Foundation""
+			P: ""LastSaved|ApplicationName"", ""KString"", """", """", ""Blender (stable FBX IO)""
+			P: ""LastSaved|ApplicationVersion"", ""KString"", """", """", ""2.77 (sub 0)""
+			P: ""LastSaved|DateTime_GMT"", ""DateTime"", """", """", ""01/01/1970 00:00:00.000""
+		}
+	}
 }
 
 ; ==================================================== 
 
-GlobalSettings:  
-{
+GlobalSettings:  {
 	Version: 1000
+	Properties70:  {
+		P: ""UpAxis"", ""int"", ""Integer"", """",1
+		P: ""UpAxisSign"", ""int"", ""Integer"", """",1
+		P: ""FrontAxis"", ""int"", ""Integer"", """",2
+		P: ""FrontAxisSign"", ""int"", ""Integer"", """",1
+		P: ""CoordAxis"", ""int"", ""Integer"", """",0
+		P: ""CoordAxisSign"", ""int"", ""Integer"", """",1
+		P: ""OriginalUpAxis"", ""int"", ""Integer"", """",-1
+		P: ""OriginalUpAxisSign"", ""int"", ""Integer"", """",1
+		P: ""UnitScaleFactor"", ""double"", ""Number"", """",1
+		P: ""OriginalUnitScaleFactor"", ""double"", ""Number"", """",1
+		P: ""AmbientColor"", ""ColorRGB"", ""Color"", """",0,0,0
+		P: ""DefaultCamera"", ""KString"", """", """", ""Producer Perspective""
+		P: ""TimeMode"", ""enum"", """", """",11
+		P: ""TimeSpanStart"", ""KTime"", ""Time"", """",0
+		P: ""TimeSpanStop"", ""KTime"", ""Time"", """",46186158000
+		P: ""CustomFrameRate"", ""double"", ""Number"", """",24
+	}
 }
 
 ; ==================================================== 
 ; Documents Description
 ; ----------------------------------------------------
 
-Documents:  
-{
+Documents:  {
 	Count: 1
-	Document: 1, """", ""Scene"" 
-	{
-		;Properties70:  
-		;{
-		;	P: ""SourceObject"", ""object"", """", """"
-		;}
+	Document: 33348792, ""Scene"", ""Scene"" {
+		Properties70:  {
+			P: ""SourceObject"", ""object"", """", """"
+			P: ""ActiveAnimStackName"", ""KString"", """", """", """"
+		}
 		RootNode: 0
 	}
 }
@@ -153,47 +211,182 @@ Documents:
 ; Document References
 ; ----------------------------------------------------
 
-References:  {
+References: {
 }
 
 ; ==================================================== 
 ; Object definitions
 ; ----------------------------------------------------
 
-Definitions:  
-{
+Definitions:  {
 	Version: 100
-
-	;Count: 3 ; количество объектов ?
-
+	Count: 6
 	ObjectType: ""GlobalSettings"" {
 		Count: 1
 	}
-
-	ObjectType: ""Texture""
-	{
+	ObjectType: ""Model"" {
+		Count: 1
+		PropertyTemplate: ""FbxNode"" {
+			Properties70:  {
+				P: ""QuaternionInterpolate"", ""enum"", """", """",0
+				P: ""RotationOffset"", ""Vector3D"", ""Vector"", """",0,0,0
+				P: ""RotationPivot"", ""Vector3D"", ""Vector"", """",0,0,0
+				P: ""ScalingOffset"", ""Vector3D"", ""Vector"", """",0,0,0
+				P: ""ScalingPivot"", ""Vector3D"", ""Vector"", """",0,0,0
+				P: ""TranslationActive"", ""bool"", """", """",0
+				P: ""TranslationMin"", ""Vector3D"", ""Vector"", """",0,0,0
+				P: ""TranslationMax"", ""Vector3D"", ""Vector"", """",0,0,0
+				P: ""TranslationMinX"", ""bool"", """", """",0
+				P: ""TranslationMinY"", ""bool"", """", """",0
+				P: ""TranslationMinZ"", ""bool"", """", """",0
+				P: ""TranslationMaxX"", ""bool"", """", """",0
+				P: ""TranslationMaxY"", ""bool"", """", """",0
+				P: ""TranslationMaxZ"", ""bool"", """", """",0
+				P: ""RotationOrder"", ""enum"", """", """",0
+				P: ""RotationSpaceForLimitOnly"", ""bool"", """", """",0
+				P: ""RotationStiffnessX"", ""double"", ""Number"", """",0
+				P: ""RotationStiffnessY"", ""double"", ""Number"", """",0
+				P: ""RotationStiffnessZ"", ""double"", ""Number"", """",0
+				P: ""AxisLen"", ""double"", ""Number"", """",10
+				P: ""PreRotation"", ""Vector3D"", ""Vector"", """",0,0,0
+				P: ""PostRotation"", ""Vector3D"", ""Vector"", """",0,0,0
+				P: ""RotationActive"", ""bool"", """", """",0
+				P: ""RotationMin"", ""Vector3D"", ""Vector"", """",0,0,0
+				P: ""RotationMax"", ""Vector3D"", ""Vector"", """",0,0,0
+				P: ""RotationMinX"", ""bool"", """", """",0
+				P: ""RotationMinY"", ""bool"", """", """",0
+				P: ""RotationMinZ"", ""bool"", """", """",0
+				P: ""RotationMaxX"", ""bool"", """", """",0
+				P: ""RotationMaxY"", ""bool"", """", """",0
+				P: ""RotationMaxZ"", ""bool"", """", """",0
+				P: ""InheritType"", ""enum"", """", """",0
+				P: ""ScalingActive"", ""bool"", """", """",0
+				P: ""ScalingMin"", ""Vector3D"", ""Vector"", """",0,0,0
+				P: ""ScalingMax"", ""Vector3D"", ""Vector"", """",1,1,1
+				P: ""ScalingMinX"", ""bool"", """", """",0
+				P: ""ScalingMinY"", ""bool"", """", """",0
+				P: ""ScalingMinZ"", ""bool"", """", """",0
+				P: ""ScalingMaxX"", ""bool"", """", """",0
+				P: ""ScalingMaxY"", ""bool"", """", """",0
+				P: ""ScalingMaxZ"", ""bool"", """", """",0
+				P: ""GeometricTranslation"", ""Vector3D"", ""Vector"", """",0,0,0
+				P: ""GeometricRotation"", ""Vector3D"", ""Vector"", """",0,0,0
+				P: ""GeometricScaling"", ""Vector3D"", ""Vector"", """",1,1,1
+				P: ""MinDampRangeX"", ""double"", ""Number"", """",0
+				P: ""MinDampRangeY"", ""double"", ""Number"", """",0
+				P: ""MinDampRangeZ"", ""double"", ""Number"", """",0
+				P: ""MaxDampRangeX"", ""double"", ""Number"", """",0
+				P: ""MaxDampRangeY"", ""double"", ""Number"", """",0
+				P: ""MaxDampRangeZ"", ""double"", ""Number"", """",0
+				P: ""MinDampStrengthX"", ""double"", ""Number"", """",0
+				P: ""MinDampStrengthY"", ""double"", ""Number"", """",0
+				P: ""MinDampStrengthZ"", ""double"", ""Number"", """",0
+				P: ""MaxDampStrengthX"", ""double"", ""Number"", """",0
+				P: ""MaxDampStrengthY"", ""double"", ""Number"", """",0
+				P: ""MaxDampStrengthZ"", ""double"", ""Number"", """",0
+				P: ""PreferedAngleX"", ""double"", ""Number"", """",0
+				P: ""PreferedAngleY"", ""double"", ""Number"", """",0
+				P: ""PreferedAngleZ"", ""double"", ""Number"", """",0
+				P: ""LookAtProperty"", ""object"", """", """"
+				P: ""UpVectorProperty"", ""object"", """", """"
+				P: ""Show"", ""bool"", """", """",1
+				P: ""NegativePercentShapeSupport"", ""bool"", """", """",1
+				P: ""DefaultAttributeIndex"", ""int"", ""Integer"", """",-1
+				P: ""Freeze"", ""bool"", """", """",0
+				P: ""LODBox"", ""bool"", """", """",0
+				P: ""Lcl Translation"", ""Lcl Translation"", """", ""A"",0,0,0
+				P: ""Lcl Rotation"", ""Lcl Rotation"", """", ""A"",0,0,0
+				P: ""Lcl Scaling"", ""Lcl Scaling"", """", ""A"",1,1,1
+				P: ""Visibility"", ""Visibility"", """", ""A"",1
+				P: ""Visibility Inheritance"", ""Visibility Inheritance"", """", """",1
+			}
+		}
+	}
+	ObjectType: ""Material"" {
+		Count: 1
+		PropertyTemplate: ""FbxSurfacePhong"" {
+			Properties70:  {
+				P: ""ShadingModel"", ""KString"", """", """", ""Phong""
+				P: ""MultiLayer"", ""bool"", """", """",0
+				P: ""EmissiveColor"", ""Color"", """", ""A"",0,0,0
+				P: ""EmissiveFactor"", ""Number"", """", ""A"",1
+				P: ""AmbientColor"", ""Color"", """", ""A"",0.2,0.2,0.2
+				P: ""AmbientFactor"", ""Number"", """", ""A"",1
+				P: ""DiffuseColor"", ""Color"", """", ""A"",0.8,0.8,0.8
+				P: ""DiffuseFactor"", ""Number"", """", ""A"",1
+				P: ""Bump"", ""Vector3D"", ""Vector"", """",0,0,0
+				P: ""NormalMap"", ""Vector3D"", ""Vector"", """",0,0,0
+				P: ""BumpFactor"", ""double"", ""Number"", """",1
+				P: ""TransparentColor"", ""Color"", """", ""A"",0,0,0
+				P: ""TransparencyFactor"", ""Number"", """", ""A"",0
+				P: ""DisplacementColor"", ""ColorRGB"", ""Color"", """",0,0,0
+				P: ""DisplacementFactor"", ""double"", ""Number"", """",1
+				P: ""VectorDisplacementColor"", ""ColorRGB"", ""Color"", """",0,0,0
+				P: ""VectorDisplacementFactor"", ""double"", ""Number"", """",1
+				P: ""SpecularColor"", ""Color"", """", ""A"",0.2,0.2,0.2
+				P: ""SpecularFactor"", ""Number"", """", ""A"",1
+				P: ""ShininessExponent"", ""Number"", """", ""A"",20
+				P: ""ReflectionColor"", ""Color"", """", ""A"",0,0,0
+				P: ""ReflectionFactor"", ""Number"", """", ""A"",1
+			}
+		}
+	}
+	ObjectType: ""Texture"" {
 		Count: 1
 		PropertyTemplate: ""FbxFileTexture"" {
+			Properties70:  {
+				P: ""TextureTypeUse"", ""enum"", """", """",0
+				P: ""Texture alpha"", ""Number"", """", ""A"",1
+				P: ""CurrentMappingType"", ""enum"", """", """",0
+				P: ""WrapModeU"", ""enum"", """", """",0
+				P: ""WrapModeV"", ""enum"", """", """",0
+				P: ""UVSwap"", ""bool"", """", """",0
+				P: ""PremultiplyAlpha"", ""bool"", """", """",1
+				P: ""Translation"", ""Vector"", """", ""A"",0,0,0
+				P: ""Rotation"", ""Vector"", """", ""A"",0,0,0
+				P: ""Scaling"", ""Vector"", """", ""A"",1,1,1
+				P: ""TextureRotationPivot"", ""Vector3D"", ""Vector"", """",0,0,0
+				P: ""TextureScalingPivot"", ""Vector3D"", ""Vector"", """",0,0,0
+				P: ""CurrentTextureBlendMode"", ""enum"", """", """",1
+				P: ""UVSet"", ""KString"", """", """", ""default""
+				P: ""UseMaterial"", ""bool"", """", """",0
+				P: ""UseMipMap"", ""bool"", """", """",0
+			}
 		}
 	}
-
-	ObjectType: ""Model"" 
-	{
-		Count: 1 ; 1 nodes в сцене
-		PropertyTemplate: ""FbxNode"" {
+	ObjectType: ""Video"" {
+		Count: 1
+		PropertyTemplate: ""FbxVideo"" {
+			Properties70:  {
+				P: ""ImageSequence"", ""bool"", """", """",0
+				P: ""ImageSequenceOffset"", ""int"", ""Integer"", """",0
+				P: ""FrameRate"", ""double"", ""Number"", """",0
+				P: ""LastFrame"", ""int"", ""Integer"", """",0
+				P: ""Width"", ""int"", ""Integer"", """",0
+				P: ""Height"", ""int"", ""Integer"", """",0
+				P: ""Path"", ""KString"", ""XRefUrl"", """", """"
+				P: ""StartFrame"", ""int"", ""Integer"", """",0
+				P: ""StopFrame"", ""int"", ""Integer"", """",0
+				P: ""PlaySpeed"", ""double"", ""Number"", """",0
+				P: ""Offset"", ""KTime"", ""Time"", """",0
+				P: ""InterlaceMode"", ""enum"", """", """",0
+				P: ""FreeRunning"", ""bool"", """", """",0
+				P: ""Loop"", ""bool"", """", """",0
+				P: ""AccessMode"", ""enum"", """", """",0
+			}
 		}
 	}
-
 	ObjectType: ""Geometry"" {
-		Count: 1 ; количество источников геометрии
+		Count: 1
 		PropertyTemplate: ""FbxMesh"" {
-		}
-	}
-
-	ObjectType: ""Material"" 
-	{
-		Count: 1 ; количество материалов
-		PropertyTemplate: ""FbxSurfacePhong"" {
+			Properties70:  {
+				P: ""Color"", ""ColorRGB"", ""Color"", """",0.8,0.8,0.8
+				P: ""BBoxMin"", ""Vector3D"", ""Vector"", """",0,0,0
+				P: ""BBoxMax"", ""Vector3D"", ""Vector"", """",0,0,0
+				P: ""Primary Visibility"", ""bool"", """", """",1
+				P: ""Casts Shadows"", ""bool"", """", """",1
+				P: ""Receive Shadows"", ""bool"", """", """",1
+			}
 		}
 	}
 }
@@ -202,10 +395,9 @@ Definitions:
 ; Object properties
 ; ----------------------------------------------------
 
-Objects:  
-{
-	Geometry: 2, ""Geometry::"", ""Mesh""		;		номер блока , тип блока , имя блока
-	{
+Objects: {
+	Geometry: 33740376, ""Geometry::Cube.037"", ""Mesh"" {
+	;	номер блока , тип блока , имя блока
 "
 }	//	список 
 )	//	метод
@@ -340,11 +532,13 @@ Objects:
 /*!*/								f_count_sum = 0 ;
 										prims_str.AddRange(prims_str_f); // добавляем список всех граней между { } 
 										prims_str_f.Clear();
-										prims_str.Add( "} ; закрывает блок PolygonVertexIndex \n" ) ;
+										prims_str.Add( "}" ) ;
+										prims_str.Add( "; закрывает блок PolygonVertexIndex \n" ) ;
 
 										AppendAllTextToObjFile(writePath, prims_str);	// записываем грани в файл
 
-										AppendAllTextToObjFile(writePath, new List<string>() { "GeometryVersion: 124" , "" } ) ;
+										AppendAllTextToObjFile(writePath, new List<string>() { "\n;Edges: *количество_рёбер {	a: ... } " , 
+										                                                       "\nGeometryVersion: 124\n" } ) ;
 
 /**//**//**//**//**//**//**//**//**//**//**//**//**//**//**//**//**//**//**//**//**//**//**//**/
 
@@ -357,8 +551,8 @@ new List<string>()
 @"	LayerElementNormal: 0 {
 			Version: 101
 			Name: """"
-			MappingInformationType: ""ByVertex"" ; ByVertice
-			ReferenceInformationType: ""IndexToDirect"" ; Direct
+			MappingInformationType: ""ByVertice""
+			ReferenceInformationType: ""Direct""
 "
 }
 );
@@ -380,9 +574,10 @@ NormalsIndex: *" + v_count + @" { a:
 /**//**//**//**//**//**//**//**//**//**//**//**//**//**//**//**//**//**//**//**//**//**//**//**/
 
 // я предпологаю , что индексы нормалей равны индексам вершин , потому что они нигде не задаются 
-// а может вообще их убрать ?
+// а может вообще их убрать , и программа вычислит их сама ?
 
 string index_of_normals = "";
+
 for (int ion = 0 ; ion < v_count ; ion++ )
 {
 	index_of_normals = index_of_normals + ion ;
@@ -400,17 +595,36 @@ AppendAllTextToObjFile(
 writePath, 
 new List<string>() 
 { 
-@"			} ; закрывает NormalsIndex", 
-@"	}  ; закрывает LayerElementNormal" 
+@"			} ", 
+@"	} "
 }
 );
-
-
-
 								} // if // ИЩЕМ ГРАНИ FACES ( prims )
 
+//жжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжж
+//жжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжж
+//жжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжж
+// COLOR
+//жжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжж
+//жжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжж
+//жжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжж
 
+/*
+		LayerElementColor: 0 {
+			Version: 101
+			Name: "Col"
+			MappingInformationType: "ByVertice"
+			ReferenceInformationType: "IndexToDirect"
 
+			Colors: *12 {
+				a: 0.996078431606293,0.996078431606293,0.996078431606293,1,1,1,1,1,0.992156863212585,0.992156863212585,0.992156863212585,1
+			} 
+
+			ColorIndex: *4616 {
+				a: ...
+			} 
+		}
+*/
 								//жжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжж
 								// ТЕКСТУРНЫЕ  КООРДИНАТЫ // uvs. // 75 76 73 00 00 00 00 00
 								//жжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжж
@@ -428,14 +642,11 @@ AppendAllTextToObjFile(	//	метод пишет
 writePath , 						//	в файл
 new List<string>() { 		//	список строк
 
-@"
-		LayerElementUV: " + array1d[i+16]
+@"	LayerElementUV: " + array1d[i+16] + " { "
 ,
-@"
-		{
-			Version: 101
-			Name: """"
-			MappingInformationType: ""ByVertex"" ; ByPolygonVertex
+@"		Version: 101
+			Name: ""diffuse_uv_layer""
+			MappingInformationType: ""ByVertice""
 			ReferenceInformationType: ""IndexToDirect""
 			UV: *" + vt_uv + @" { a: "
 }
@@ -464,8 +675,7 @@ AppendAllTextToObjFile(	//	метод пишет
 writePath , 						//	в файл
 new List<string>() { 		//	список строк
 @"
-          UVIndex: *" + uv_index_count + @" { a: 
-"
+          UVIndex: *" + uv_index_count + @" { a: "
 }
 )
 ;
@@ -483,8 +693,10 @@ AppendAllTextToObjFile(	//	метод пишет
 writePath , 						//	в файл
 new List<string>() { 		//	список строк
 @"
-          }	;	закрываем скобки UVIndex
-      }	; закрываем скобки ""тега"" LayerElementUV
+          }	
+          ;	закрываем скобки UVIndex
+      }	
+      ; закрываем скобки ""тега"" LayerElementUV
 "
 }
 )
@@ -523,7 +735,7 @@ new List<string>() { 		//	список строк
 								//uv_str_dub.Clear() ;
 						
 								//жжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжж
-						
+
 								if ( i == i_end - 42 ) // записываем один раз в конец файла
 								{
 
@@ -534,152 +746,136 @@ writePath , 						//	в файл
 new List<string>() { 		//	список строк
 
 @"
-		LayerElementMaterial: 0 
-		{
+		LayerElementMaterial: 0 {
 			Version: 101
 			Name: """"
-			MappingInformationType: ""AllSame"" ; ByPolygon
+			MappingInformationType: ""ByVertice""
+															;	AllSame
 			ReferenceInformationType: ""IndexToDirect""
-			Materials: *3 {
-				a: 0,0,0
+			Materials: *1 {
+				a: 0
 			} 
 		}
-
-		Layer: 0 
-		{
+		Layer: 0 {
 			Version: 100
-
 			LayerElement:  {
 				Type: ""LayerElementNormal""
 				TypedIndex: 0
 			}
-
 			LayerElement:  {
 				Type: ""LayerElementMaterial""
 				TypedIndex: 0
 			}
-
+			LayerElement:  {
+				Type: ""LayerElementColor""
+				TypedIndex: 0
+			}
 			LayerElement:  {
 				Type: ""LayerElementUV""
 				TypedIndex: 0
 			}
-
-			;LayerElement:  {
-			;	Type: ""LayerElementUV""
-			;	TypedIndex: 0
-			;}
 		}
-
-		Layer: 1 
-		{
+		Layer: 1 {
 			Version: 100
 			LayerElement:  {
 				Type: ""LayerElementUV""
 				TypedIndex: 1
 			}
 		}
-
-		;Layer: 2 
-		;{
-		;	Version: 100
-		;	LayerElement:  {
-		;		Type: ""LayerElementUV""
-		;		TypedIndex: 2
-		;	}
-		;}
-
-}	; закрывает Geometry
-
-
-	Model: 3, ""Model::Mesh0"", ""Mesh"" 
-	{
-		Version: 232
-		Properties70:  
-		{
-			P: ""DefaultAttributeIndex"", ""int"", ""Integer"", """", 0
-		}
-		Shading: T
-		Culling: ""CullingOff""
 	}
 
+	; закрывает Geometry
 
-	Material: 40901968, ""Material::material01"", """" 
-	{
+
+	Model: 33737576, ""Model::Castle"", ""Mesh"" {
+		Version: 232
+		Properties70:  {
+			P: ""InheritType"", ""enum"", """", """",1
+			P: ""DefaultAttributeIndex"", ""int"", ""Integer"", """",0
+			P: ""Lcl Translation"", ""Lcl Translation"", """", ""A"",740.226989746094,0,-464.880859375
+			P: ""Lcl Rotation"", ""Lcl Rotation"", """", ""A"",-89.999995674289,-89.999995674289,0
+			P: ""Lcl Scaling"", ""Lcl Scaling"", """", ""A"",100,100,100
+		}
+		Culling: ""CullingOff""
+	}
+	Material: 33739120, ""Material::castle_map"", """" {
 		Version: 102
 		ShadingModel: ""phong""
 		MultiLayer: 0
 		Properties70:  {
-			P: ""AmbientColor"", ""ColorRGB"", ""Color"", """",0.878431379795074,0.878431379795074,0.878431379795074
-			P: ""DiffuseColor"", ""ColorRGB"", ""Color"", """",0.878431379795074,0.878431379795074,0.878431379795074
-			P: ""TransparentColor"", ""ColorRGB"", ""Color"", """",1,1,1
-			P: ""SpecularColor"", ""ColorRGB"", ""Color"", """",1,1,1
-			P: ""SpecularFactor"", ""double"", ""Number"", """",0.26666667064031
-			P: ""ShininessExponent"", ""double"", ""Number"", """",8.00000066103669
+			P: ""EmissiveColor"", ""Color"", """", ""A"",0.800000011920929,0.800000011920929,0.800000011920929
+			P: ""EmissiveFactor"", ""Number"", """", ""A"",0
+			P: ""AmbientColor"", ""Color"", """", ""A"",0,0,0
+			P: ""DiffuseColor"", ""Color"", """", ""A"",0.800000011920929,0.800000011920929,0.800000011920929
+			P: ""TransparentColor"", ""Color"", """", ""A"",1,1,1
+			P: ""SpecularColor"", ""Color"", """", ""A"",1,1,1
+			P: ""SpecularFactor"", ""Number"", """", ""A"",0
+			P: ""ShininessExponent"", ""Number"", """", ""A"",9.6078431372549
+			P: ""ReflectionColor"", ""Color"", """", ""A"",1,1,1
+			P: ""ReflectionFactor"", ""Number"", """", ""A"",0
+			P: ""Shininess"", ""Number"", """", ""A"",9.6078431372549
 			P: ""Emissive"", ""Vector3D"", ""Vector"", """",0,0,0
-			P: ""Ambient"", ""Vector3D"", ""Vector"", """",0.878431379795074,0.878431379795074,0.878431379795074
-			P: ""Diffuse"", ""Vector3D"", ""Vector"", """",0.878431379795074,0.878431379795074,0.878431379795074
-			P: ""Specular"", ""Vector3D"", ""Vector"", """",0.26666667064031,0.26666667064031,0.26666667064031
-			P: ""Shininess"", ""double"", ""Number"", """",8.00000066103669
+			P: ""Ambient"", ""Vector3D"", ""Vector"", """",0,0,0
+			P: ""Diffuse"", ""Vector3D"", ""Vector"", """",0.800000011920929,0.800000011920929,0.800000011920929
+			P: ""Specular"", ""Vector3D"", ""Vector"", """",0,0,0
 			P: ""Opacity"", ""double"", ""Number"", """",1
 			P: ""Reflectivity"", ""double"", ""Number"", """",0
 		}
 	}
-
-
-	Texture: 40871600, ""Texture::kain_big-0000000016.dds"", """" 
-	{
+	Video: 33739984, ""Video::final_castle_texture"", ""Clip"" {
+		Type: ""Clip""
+		Properties70:  {
+			P: ""Path"", ""KString"", ""XRefUrl"", """", ""C:\Users\robto\Downloads\final_castle_texture.png""
+		}
+		UseMipMap: 0
+		Filename: ""C:\Users\robto\Downloads\final_castle_texture.png""
+		RelativeFilename: ""..\Users\robto\Downloads\final_castle_texture.png""
+	}
+	Texture: 33739496, ""Texture::texture_castle"", """" {
 		Type: ""TextureVideoClip""
 		Version: 202
-		TextureName: ""Texture::kain_big-0000000016.dds""
+		TextureName: ""Texture::texture_castle""
 		Properties70:  {
-			P: ""CurrentTextureBlendMode"", ""enum"", """", """",0
-			P: ""UVSet"", ""KString"", """", """", ""UVSet0""
+			P: ""UVSet"", ""KString"", """", """", """"
+			P: ""UseMaterial"", ""bool"", """", """",1
+			P: ""UseMipMap"", ""bool"", """", """",1
+			P: ""AlphaSource"", ""enum"", """", """",2
 		}
-		Media: ""Video::kain_big-0000000016.dds""
-		FileName: ""E:\dev\assimp\assimp-gsoc2012-fbx\test\models-nonbsd\3DS\kain_big-0000000016.dds""
-		RelativeFilename: ""kain_big-0000000016.dds""
+		Media: ""Video::final_castle_texture""
+		FileName: ""C:\Users\robto\Downloads\final_castle_texture.png""
+		RelativeFilename: ""..\Users\robto\Downloads\final_castle_texture.png""
 		ModelUVTranslation: 0,0
 		ModelUVScaling: 1,1
 		Texture_Alpha_Source: ""None""
 		Cropping: 0,0,0,0
 	}
-
-
-}	; закрывает Objects
-"
-
-,
-
-@"
-
-; ====================================================
-; Object connections  
-; ----------------------------------------------------  
-
-Connections:  
-{
-	; связываем модель со сценой
-	;""Model::Mesh0"", ""Model::RootNode""
-	C: ""OO"",3,0
-
-	; связываем геометрию с моделью
-	;""Geometry::"", ""Model::Mesh0""
-	C: ""OO"",2,3
-	
-	; связываем материал с моделью
-	;Material::material01, Model::Mesh0
-	C: ""OO"",40901968,3
-
-	; связываем текстуру с материалом
-	;Texture::kain_big-0000000016.dds, Material::material01
-	C: ""OP"",40871600,40901968, ""DiffuseColor""
 }
 
-; ====================================================
-;Takes section  
-; ----------------------------------------------------  
+; Object connections
+;------------------------------------------------------------------
+
+Connections:  {
+	
+	;Model::Castle, Model::RootNode
+	C: ""OO"",33737576,0
+	
+	;Geometry::Cube.037, Model::Castle
+	C: ""OO"",33740376,33737576
+	
+	;Material::castle_map, Model::Castle
+	C: ""OO"",33739120,33737576
+	
+	;Texture::texture_castle, Material::castle_map
+	C: ""OP"",33739496,33739120, ""DiffuseColor""
+	
+	;Video::final_castle_texture, Texture::texture_castle
+	C: ""OO"",33739984,33739496
+}
+;Takes section
+;----------------------------------------------------
 
 Takes:  {
+	Current: """"
 }
 "
 }

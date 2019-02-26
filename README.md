@@ -1,4 +1,9 @@
 # Blood-Omen-2-Legacy-of-Kain
+
+
+big-файлы содержат модели похожие на *.mdl или на *.smd
+http://lazov.ru/mr/tutorial.php
+
 obj-файлы нормально загружаются только в Assimp!
 
 Поместите эти *.cs и батники в папку с *.big файлами 

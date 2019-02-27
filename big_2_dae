@@ -1,0 +1,411 @@
+// big2dae by Space Dog https://vk.com/id351409763
+
+/*"...вместо разбития на сабмеши - накидывает на полигоны материал..."
+"...т.е. вместо модели разделенной на две части одна модель с двумя материалами..."
+"...для модели с одной текстурой и состоящей из 3-х частей будет 3 материала..."*/
+
+using System;
+using System.IO;
+using System.Collections.Generic;
+
+class BigToCollada
+{
+    static void Main()
+    {
+        System.Threading.Thread.CurrentThread.CurrentCulture = new System.Globalization.CultureInfo("en-US");
+
+        string[] files = Directory.GetFiles(Directory.GetCurrentDirectory(), "*.big", SearchOption.AllDirectories);
+
+        foreach (string file in files)
+        {
+            List<int> lPrimINX = new List<int>();           
+            List<byte> lVertex = new List<byte>();          
+            List<byte> lNormals = new List<byte>();
+            List<byte> lPrims = new List<byte>();
+            List<byte> lUV = new List<byte>();
+
+            List<string> lVertexStr = new List<string>();
+            List<string> lNormalStr = new List<string>();
+            List<string> lPrimsSTR = new List<string>();
+            List<string> lUVStr = new List<string>();
+            List<string> lUV2Str = new List<string>();
+
+            int iByte = 0;                                  
+            int subMesh = 0;
+            int nameCounter = 0;
+            bool uv2 = false;                               
+            bool twoUVSet = false;                          
+
+            byte[] byteFile = File.ReadAllBytes(file);
+
+            for (iByte = 0; iByte < byteFile.Length - 7; ++iByte)
+            {
+                //Vertex  (position  0x706F736974696F6E)
+                if (byteFile[iByte + 0] == 0x70 & byteFile[iByte + 1] == 0x6F &
+                    byteFile[iByte + 2] == 0x73 & byteFile[iByte + 3] == 0x69 &
+                    byteFile[iByte + 4] == 0x74 & byteFile[iByte + 5] == 0x69 &
+                    byteFile[iByte + 6] == 0x6F & byteFile[iByte + 7] == 0x6E)
+                {
+                    uv2 = false;
+                    twoUVSet = false;
+                    byte[] tempVertexSize = { byteFile[iByte + 16 + 0], byteFile[iByte + 16 + 1], byteFile[iByte + 16 + 2], byteFile[iByte + 16 + 3] };
+                    int vertexSize = BitConverter.ToInt32(tempVertexSize, 0);
+
+                    for (int i = 0; i < vertexSize * 12; ++i)
+                    {
+                        lVertex.Add(byteFile[iByte + 20 + i]);
+                    }
+
+                    for (int k = 0; k < lVertex.Count; k += 12)
+                    {
+                        byte[] floatArrayX = { lVertex[k + 0], lVertex[k + 1], lVertex[k + 2], lVertex[k + 3] };
+                        byte[] floatArrayY = { lVertex[k + 4], lVertex[k + 5], lVertex[k + 6], lVertex[k + 7] };
+                        byte[] floatArrayZ = { lVertex[k + 8], lVertex[k + 9], lVertex[k + 10], lVertex[k + 11]};
+
+                        float xV = BitConverter.ToSingle(floatArrayX, 0);
+                        float yV = BitConverter.ToSingle(floatArrayY, 0);
+                        float zV = BitConverter.ToSingle(floatArrayZ, 0);
+
+                        string vertexX = String.Format("{0:0.000}", xV);
+                        string vertexY = String.Format("{0:0.000}", yV);
+                        string vertexZ = String.Format("{0:0.000}", zV);
+
+                        lVertexStr.Add(vertexX);
+                        lVertexStr.Add(vertexY);
+                        lVertexStr.Add(vertexZ);
+                    }
+                    lVertex.Clear();
+                }
+
+                //Normals
+
+                if (byteFile[iByte + 0] == 0x6E & byteFile[iByte + 1] == 0x6F &
+                    byteFile[iByte + 2] == 0x72 & byteFile[iByte + 3] == 0x6D &
+                    byteFile[iByte + 4] == 0x61 & byteFile[iByte + 5] == 0x6C &
+                    byteFile[iByte + 6] == 0x73 & byteFile[iByte + 7] == 0x00)
+                {
+                    byte[] tempNormalsSize = { byteFile[iByte + 16 + 0], byteFile[iByte + 16 + 1], byteFile[iByte + 16 + 2], byteFile[iByte + 16 + 3] };
+
+                    int normalsSize = BitConverter.ToInt32(tempNormalsSize, 0);
+
+                    for (int i = 0; i < normalsSize * 12; i++)
+                    {
+                        lNormals.Add(byteFile[iByte + 20 + i]);
+                    }
+
+                    for (int j = 0; j < lNormals.Count; j += 12)
+                    {
+                        byte[] floatArrayXn = { lNormals[j + 0], lNormals[j + 1], lNormals[j + 2],  lNormals[j + 3]  };
+                        byte[] floatArrayYn = { lNormals[j + 4], lNormals[j + 5], lNormals[j + 6],  lNormals[j + 7]  };
+                        byte[] floatArrayZn = { lNormals[j + 8], lNormals[j + 9], lNormals[j + 10], lNormals[j + 11] };
+
+                        float vn1 = BitConverter.ToSingle(floatArrayXn, 0);
+                        float vn2 = BitConverter.ToSingle(floatArrayYn, 0);
+                        float vn3 = BitConverter.ToSingle(floatArrayZn, 0);
+
+                        string normalX = String.Format("{0:0.00}", vn1);
+                        string normalY = String.Format("{0:0.00}", vn2);
+                        string normalZ = String.Format("{0:0.00}", vn3);
+
+                        lNormalStr.Add(normalX);
+                        lNormalStr.Add(normalY);
+                        lNormalStr.Add(normalZ);
+                    }
+
+                    lNormals.Clear();
+                }
+
+                //Prims
+
+                if (byteFile[iByte + 0] == 0x70 & byteFile[iByte + 1] == 0x72 & byteFile[iByte + 2] == 0x69 & byteFile[iByte + 3] == 0x6D & byteFile[iByte + 4] == 0x73)
+                {
+                    int id = iByte + 24;
+                    int offset = 0;
+                    subMesh = byteFile[iByte + 16]; 
+
+                    for (int i = 0; i < subMesh; i++)   
+                    {
+                        int p = 0;
+                        byte[] tmpFaceCount = { byteFile[id + 0 + offset], byteFile[id + 1 + offset], byteFile[id + 2 + offset], byteFile[id + 3 + offset] };
+                        int faceCount = BitConverter.ToInt32(tmpFaceCount, 0); 
+                        byte[] vertINXarr = { byteFile[id + 4 + 0 + offset], byteFile[id + 4 + 1 + offset], byteFile[id + 4 + 2 + offset], byteFile[id + 4 + 3 + offset]};
+                        int verTableSize = BitConverter.ToInt32(vertINXarr, 0); 
+                        for (int j = 0; j < verTableSize * 2; j++)
+                        {
+                            lPrims.Add(byteFile[id + 8 + j + offset]);
+                        }
+                        offset += (verTableSize * 2) + 52;
+                        if (faceCount % 2 != 0) offset += 2;
+                        for (int k = 0; k < lPrims.Count; k += 6)
+                        {
+                            byte[] shortV1 = { lPrims[k + 0], lPrims[k + 1] }; 
+                            byte[] shortV2 = { lPrims[k + 2], lPrims[k + 3] }; 
+                            byte[] shortV3 = { lPrims[k + 4], lPrims[k + 5] }; 
+
+                            Int16 vertINX_1 = (Int16)BitConverter.ToInt16(shortV1, 0); 
+                            Int16 vertINX_2 = (Int16)BitConverter.ToInt16(shortV2, 0); 
+                            Int16 vertINX_3 = (Int16)BitConverter.ToInt16(shortV3, 0); 
+
+                            string faces1 = String.Format("{0}", vertINX_1);
+                            string faces2 = String.Format("{0}", vertINX_2);
+                            string faces3 = String.Format("{0}", vertINX_3);
+
+                            lPrimsSTR.Add(faces1);
+                            lPrimsSTR.Add(faces2);
+                            lPrimsSTR.Add(faces3);
+                            p += 3;
+                        }
+
+                        lPrimINX.Add(p);
+                        lPrims.Clear();
+                    }                    
+                }
+
+                //uvs. 0x75767300
+
+                if (byteFile[iByte + 0] == 0x75 & byteFile[iByte + 1] == 0x76 & byteFile[iByte + 2] == 0x73 & byteFile[iByte + 3] == 0x00 & !uv2)
+                {
+                    byte[] uvCounterArr = { byteFile[iByte + 20 + 0], byteFile[iByte + 20 + 1], byteFile[iByte + 20 + 2], byteFile[iByte + 20 + 3] };
+                    int uvSize = BitConverter.ToInt32(uvCounterArr, 0);
+
+                    for (int k = 0; k < uvSize * 2 * 4; k++)
+                    {
+                        lUV.Add(byteFile[iByte + 24 + k]);
+                    }
+
+                    for (int j = 0; j < lUV.Count; j += 8)
+                    {
+                        byte[] arrU = { lUV[j + 0], lUV[j + 1], lUV[j + 2], lUV[j + 3] };
+                        byte[] arrV = { lUV[j + 4], lUV[j + 5], lUV[j + 6], lUV[j + 7] };
+                        float vu = BitConverter.ToSingle(arrU, 0);
+                        float vv = (-1) * BitConverter.ToSingle(arrV, 0);
+                        string uvSTR_1 = String.Format("{0:0.00}", vu);
+                        string uvSTR_2 = String.Format("{0:0.00}", vv);
+                        lUVStr.Add(uvSTR_1);
+                        lUVStr.Add(uvSTR_2);
+                    }
+                    uv2 = true;
+                }
+
+                else if (byteFile[iByte + 0] == 0x75 & byteFile[iByte + 1] == 0x76 & byteFile[iByte + 2] == 0x73 & byteFile[iByte + 3] == 0x00 & uv2)
+                {
+                    byte[] uvCounterArr = { byteFile[iByte + 20 + 0], byteFile[iByte + 20 + 1], byteFile[iByte + 20 + 2], byteFile[iByte + 20 + 3] };
+                    int uvSize = BitConverter.ToInt32(uvCounterArr, 0);
+                    for (int k = 0; k < uvSize * 2 * 4; k++)
+                    {
+                        lUV.Add(byteFile[iByte + 24 + k]);
+                    }
+                    for (int j = 0; j < lUV.Count; j += 8)
+                    {
+                        byte[] arrU = { lUV[j + 0], lUV[j + 1], lUV[j + 2], lUV[j + 3] };
+                        byte[] arrV = { lUV[j + 4], lUV[j + 5], lUV[j + 6], lUV[j + 7] };
+
+                        float vu = BitConverter.ToSingle(arrU, 0);
+                        float vv = BitConverter.ToSingle(arrV, 0);
+
+                        string uvSTR1 = String.Format("{0:0.00}", vu);
+                        string uvSTR2 = String.Format("{0:0.00}", vv);
+
+                        lUV2Str.Add(uvSTR1);
+                        lUV2Str.Add(uvSTR2);
+                    }                    
+                    twoUVSet = true;
+                }
+                lUV.Clear();
+            }
+
+            string fileName = Path.GetFileNameWithoutExtension(file);
+            string daeFile = fileName + "_" + nameCounter + ".dae";
+            if (File.Exists(daeFile)) File.Delete(daeFile);
+            Console.WriteLine(daeFile);
+            PrintHeaderCollada(daeFile);
+            LibraryImages(daeFile);
+            LibraryMaterials(daeFile, subMesh);
+            LibraryGeometries(fileName, daeFile, lVertexStr, lNormalStr, lPrimsSTR, lUVStr, lUV2Str, subMesh, twoUVSet, lPrimINX);
+            LibraryVisualScenes(fileName, daeFile, subMesh);
+            ++nameCounter;
+            Console.ReadKey();
+        }
+    }
+
+    static void PrintHeaderCollada(string fileName)
+    {
+        using (StreamWriter writeDAE = File.AppendText(fileName))
+        {
+            writeDAE.WriteLine("<?xml version=\"1.0\" encoding=\"utf-8\"?>");
+            writeDAE.WriteLine("<COLLADA xmlns=\"http://www.collada.org/2005/11/COLLADASchema" +"\" version=\"1.4.1\">");
+            writeDAE.WriteLine("  <asset>");
+            writeDAE.WriteLine("    <unit name=\"centimeter\" meter=\"1\"/>");
+            writeDAE.WriteLine("    <up_axis>Y_UP</up_axis>"); 
+            writeDAE.WriteLine("  </asset>");
+        }
+    }
+
+    static void LibraryImages(string fileName)
+    {
+        using (StreamWriter writeDAE = File.AppendText(fileName))
+        {
+            writeDAE.WriteLine("  <library_images/>");
+        }
+    }
+
+    static void LibraryMaterials(string fileName, int subMesh)
+    {
+        using (StreamWriter writeDAE = File.AppendText(fileName))
+        {
+            writeDAE.WriteLine("  <library_materials>");
+            for (int i = 0; i < subMesh; i++)
+            {
+                writeDAE.WriteLine("    <material id=\"Material_" + i + "\">");
+                writeDAE.WriteLine("      <instance_effect url=\"#Material_" + i + "-effect\"/>");
+                writeDAE.WriteLine("    </material>");
+            }
+            writeDAE.WriteLine("  </library_materials>");
+        }
+    }
+
+    static void LibraryGeometries(string fileName, string daeFile, List<string> lVertexStr, 
+                                  List<string> lNormalStr, List<string> lPrimsSTR, List<string> lUVStr, 
+                                  List<string> lUV2Str, int subMesh, bool twoUVSet, List <int> lPrimINX)
+    {
+        using (StreamWriter writeDAE = File.AppendText(daeFile))
+        {
+            Console.WriteLine("twoUV = {0}", twoUVSet);
+
+            writeDAE.WriteLine("  <library_geometries>");
+            writeDAE.WriteLine("    <geometry id=\"" + fileName + "-mesh\" name=\"" + fileName + "\">");
+            writeDAE.WriteLine("      <mesh>");
+            writeDAE.WriteLine("        <source id=\"" + fileName +"-mesh-positions\">");
+            writeDAE.Write("          <float_array id=\"" + fileName + "-mesh-positions-array\" " +
+                             "count=\"" + lVertexStr.Count + "\">");
+
+            for(int i = 0; i < lVertexStr.Count; i++)
+            {
+                writeDAE.Write(" " + lVertexStr[i]);
+            }
+
+            writeDAE.WriteLine(" </float_array>");
+            writeDAE.WriteLine("          <technique_common>");
+            writeDAE.WriteLine("            <accessor source=\"#" + fileName + "-mesh-positions-array\" count=\"" + lVertexStr.Count / 3 + "\" stride=\"3\">");
+            writeDAE.WriteLine("              <param name=\"X\" type=\"float\"/>");
+            writeDAE.WriteLine("              <param name=\"Y\" type=\"float\"/>");
+            writeDAE.WriteLine("              <param name=\"Z\" type=\"float\"/>");
+            writeDAE.WriteLine("            </accessor>");
+            writeDAE.WriteLine("          </technique_common>");
+            writeDAE.WriteLine("        </source>");
+            writeDAE.WriteLine("        <source id=\"" + fileName + "-mesh-normals\">");
+            writeDAE.Write("          <float_array id=\"" + fileName + "-mesh-normals-array\"" + " count=\"" + lNormalStr.Count + "\">");
+
+            for (int i = 0; i < lNormalStr.Count; i++)
+            {
+                writeDAE.Write(" " + lNormalStr[i]);
+            }
+
+            writeDAE.WriteLine(" </float_array>");
+            writeDAE.WriteLine("          <technique_common>");
+            writeDAE.WriteLine("            <accessor source=\"#" + fileName + "-mesh-normals-array\" count=\"" + lNormalStr.Count / 3 + "\" stride=\"3\">");
+            writeDAE.WriteLine("              <param name=\"X\" type=\"float\"/>");
+            writeDAE.WriteLine("              <param name=\"Y\" type=\"float\"/>");
+            writeDAE.WriteLine("              <param name=\"Z\" type=\"float\"/>");
+            writeDAE.WriteLine("            </accessor>");
+            writeDAE.WriteLine("          </technique_common>");
+            writeDAE.WriteLine("        </source>");
+            writeDAE.WriteLine("        <source id=\"" + fileName + "-mesh-map-0\">");
+            writeDAE.Write("          <float_array id=\"" + fileName + "-mesh-map-0-array\"" + " count=\"" + lUVStr.Count + "\">");
+
+            for (int i = 0; i < lUVStr.Count; i++)
+            {
+                writeDAE.Write(" " + lUVStr[i]);
+            }
+
+            writeDAE.WriteLine(" </float_array>");
+            writeDAE.WriteLine("          <technique_common>");
+            writeDAE.WriteLine("            <accessor source=\"#" + fileName + "-mesh-map-0-array\" count=\"" + lUVStr.Count / 2 + "\" stride=\"2\">");
+            writeDAE.WriteLine("              <param name=\"S\" type=\"float\"/>");
+            writeDAE.WriteLine("              <param name=\"T\" type=\"float\"/>");
+            writeDAE.WriteLine("            </accessor>");
+            writeDAE.WriteLine("          </technique_common>");
+            writeDAE.WriteLine("        </source>");
+
+            if(twoUVSet)
+            {
+                writeDAE.WriteLine("        <source id=\"" + fileName + "-mesh-map-1\">");
+                writeDAE.Write("          <float_array id=\"" + fileName + "-mesh-map-1-array\"" + " count=\"" + lUV2Str.Count + "\">");
+                for (int i = 0; i < lUV2Str.Count; ++i)
+                {
+                    writeDAE.Write(" " + lUV2Str[i]);
+                }
+                writeDAE.WriteLine(" </float_array>");
+                writeDAE.WriteLine("          <technique_common>");
+                writeDAE.WriteLine("            <accessor source=\"#" + fileName +"-mesh-map-1-array\" count=\"" + lUV2Str.Count / 2 + "\" stride=\"2\">");
+                writeDAE.WriteLine("              <param name=\"S\" type=\"float\"/>");
+                writeDAE.WriteLine("              <param name=\"T\" type=\"float\"/>");
+                writeDAE.WriteLine("            </accessor>");
+                writeDAE.WriteLine("          </technique_common>");
+                writeDAE.WriteLine("        </source>");
+
+            }
+
+            writeDAE.WriteLine("        <vertices id=\"" + fileName +"-mesh-vertices\">");
+            writeDAE.WriteLine("          <input semantic=\"POSITION\" source=\"#" + fileName + "-mesh-positions\"/>");
+            writeDAE.WriteLine("        </vertices>");
+
+            int j = 0;
+            int x = 0;
+
+            for (int k = 0; k <subMesh; ++k)
+            {
+                int poly = lPrimINX[k];
+                writeDAE.WriteLine("        <triangles  material=\"Material_" + k +"\" count=\"" + poly / 3 + "\">");
+                writeDAE.WriteLine("          <input semantic=\"VERTEX\" source=\"#" + fileName + "-mesh-vertices\" offset=\"0\"/>");
+                writeDAE.WriteLine("          <input semantic=\"NORMAL\" source=\"#" + fileName + "-mesh-normals\" offset=\"1\"/>");
+                writeDAE.WriteLine("          <input semantic=\"TEXCOORD\" source=\"#" + fileName + "-mesh-map-0\" offset=\"2\" set=\"0\"/>");
+                if(twoUVSet)
+                {
+                    writeDAE.WriteLine("          <input semantic=\"TEXCOORD\" source=\"#" + fileName + "-mesh-map-1\" offset=\"2\" set=\"1\"/>");
+                }
+                writeDAE.Write("          <p>");
+                while (j < poly)
+                {
+                    writeDAE.Write(" " + lPrimsSTR[x+j] + " " + lPrimsSTR[x+j] + " " + lPrimsSTR[x+j]);
+                    ++j;
+                }                           
+                writeDAE.WriteLine(" </p>");
+                writeDAE.WriteLine("        </triangles>");
+                x = j;
+                j = 0;
+            }
+            writeDAE.WriteLine("      </mesh>");
+            writeDAE.WriteLine("    </geometry>");
+            writeDAE.WriteLine("  </library_geometries>");
+        }
+    }
+
+    static void LibraryVisualScenes(string fileName, string daeFile, int subMesh)
+    {
+        using (StreamWriter writeDAE = File.AppendText(daeFile))
+        {
+            writeDAE.WriteLine("  <library_visual_scenes>");
+            writeDAE.WriteLine("    <visual_scene id=\"Scene\"" + " name=\"Scene\">");
+            writeDAE.WriteLine("      <node id=\"" + fileName + "\" name=\"" + fileName + "\" type=\"NODE\">");
+            writeDAE.WriteLine("        <instance_geometry url=\"#" + fileName + "-mesh\" name=\"" + fileName + "\">");
+            writeDAE.WriteLine("          <bind_material>");
+            writeDAE.WriteLine("            <technique_common>");
+            for (int i = 0; i < subMesh; ++i)
+            {
+                writeDAE.WriteLine("              <instance_material symbol=\"Material_" + i + "\" target=\"#Material_" + i + "\"/>");
+
+            }
+            writeDAE.WriteLine("            </technique_common>");
+            writeDAE.WriteLine("          </bind_material>");
+            writeDAE.WriteLine("        </instance_geometry>");
+            writeDAE.WriteLine("      </node>");
+            writeDAE.WriteLine("    </visual_scene>");
+            writeDAE.WriteLine("  </library_visual_scenes>");
+            writeDAE.WriteLine("  <scene>");
+            writeDAE.WriteLine("    <instance_visual_scene url=\"#Scene\"/>");
+            writeDAE.WriteLine("  </scene>");
+            writeDAE.WriteLine("</COLLADA>");
+        }
+    }
+}

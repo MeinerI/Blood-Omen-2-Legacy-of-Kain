@@ -4,6 +4,7 @@ big-файлы содержат модели похожие на *.mdl или н
 http://lazov.ru/mr/tutorial.php
 
 if ( Vertices           == UVIndex ) MappingInformationType = "ByVertex"  ;
+
 if ( PolygonVertexIndex == UVIndex ) MappingInformationType = "ByPolygon" ;
 
 obj и fbx файлы нормально загружаются только в Assimp.

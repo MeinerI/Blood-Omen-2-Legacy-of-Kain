@@ -1,4 +1,4 @@
-// нужно "перерасчитать" индексы для каждой сабмеши в теге PolygonVertexIndex
+// нужно "перерассчитать" индексы для каждой сабмеши в теге PolygonVertexIndex
 
 //жжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжж
 	using System ; using System.IO ; using System.Linq ; using System.Text ; using System.Collections ; using System.Collections.Generic ; 

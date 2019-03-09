@@ -230,20 +230,8 @@ sealed class big2fbx
 
 												primsss_count.Clear(); 
 										}
-/*
-										foreach (List<string> subList in subMeshFacesStr)	{
-												foreach (string item in subList)	{
-														Console.WriteLine(item);
 
-										Console.WriteLine();
-
-										for ( int h = 0 ; h < fs_count ; h++ )	{
-												for ( int w = 0 ; w < subMeshFacesStr[h].Count ; w++ )	{
-														Console.WriteLine(subMeshFacesStr[h][w]);
-												}
-										}		//	[0][0]	//	[0][1]	//	[...][...]	//	[1][0]	//	[1][1]
-*/
-										primsss_count.Clear(); 
+									primsss_count.Clear(); 
 
 								} // if // ИЩЕМ ГРАНИ FACES ( prims )
 

@@ -1,5 +1,7 @@
 # Blood-Omen-2-Legacy-of-Kain
 
+Direct-X File Format -_-
+
 if ( Vertices           == UVIndex ) MappingInformationType = "ByVertex"  ;
 
 if ( PolygonVertexIndex == UVIndex ) MappingInformationType = "ByPolygon" ;

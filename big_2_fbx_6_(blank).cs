@@ -1,5 +1,3 @@
-//int qq = 0 ; foreach ( var q in List<string> ) {Console.WriteLine ( qq + " " + q ) ; qq++ ; }
-
 //жжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжж
 	using System ; using System.IO ; using System.Linq ; using System.Text ; using System.Collections ; using System.Collections.Generic ; 
 //жжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжж
@@ -29,6 +27,8 @@ sealed class big2fbx
 		
 		static string[] files ; // зачем я это сюда вынес ?
 
+		static bool uvs_flag = false ; // у некоторых моделей отсутствует блок uv // например detector.model
+
 //жжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжж
 
 		// чтобы не обращаться в файл ( и дисковой системе? ) 
@@ -47,8 +47,10 @@ sealed class big2fbx
 /*
 		AppendAllTextToObjFile (	//	метод пишет
 		writePath	,								//	в файл
-		new List<string>	( )	{	//	список строк
-		@""," + "		}		);
+		new List<string>()				//	список строк
+		{	
+		@""," + "		
+		});
 */
 
 //жжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжж
@@ -61,18 +63,18 @@ sealed class big2fbx
 
 //			https://docs.microsoft.com/ru-ru/visualstudio/code-quality/ca1006-do-not-nest-generic-types-in-member-signatures?view=vs-2015
 
-				List<byte> vx_Hex_List = new List<byte>()	;	List<string> v_Str_List  = new List<string>();	// вершины
+				List<byte> vx_Hex_List = new List<byte>()	;	List<string> vx_Str_List  = new List<string>();	// вершины
 				List<byte> vn_Hex_List = new List<byte>()	;	List<string> vn_Str_List = new List<string>();	// нормали
-
 				List<byte> f_Hex_List  = new List<byte>()	;	List<string> f_Str_List  = new List<string>();	// грани
 
 				List<List<string>> subMeshFacesStr = new List<List<string>>(); 
 				// хранит наборы граней для каждой сабмеши , где [номер_сабмеши][номер_грани]
 
-				SortedSet<int>	v_index_SubM = new SortedSet<int>()	;	//	содержит уникальные индексы вершин для одной сабмеши
-				List<List<int>> v_index_List = new List<List<int>>();	//	исп~ся для выборки вершин, из общего списка, для каждой сабмеши
+				SortedSet<int>	vx_index_SubM = new SortedSet<int>()	;	//	содержит уникальные индексы вершин для одной сабмеши
+				List<List<int>> vx_index_List = new List<List<int>>();	//	исп~ся для выборки вершин, из общего списка, для каждой сабмеши
 
-				List<byte> vt_Hex_List = new List<byte>()	; List<string> vt_uv_str_List		= new List<string>(); // uvs
+				List<byte> vt_Hex_List = new List<byte>()	; List<string> vt_uv___str_List1	= new List<string>(); // uvs1
+																									; List<string> vt_uv___str_List2	= new List<string>(); // uvs2
 				List<byte> uv_Hex_List = new List<byte>()	; List<string> vt_uv_i_str_List = new List<string>(); // uvs_index
 
 //жжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжж
@@ -97,9 +99,11 @@ sealed class big2fbx
 										 AllBytes[ i + 4 ] == 0x64 & AllBytes[ i + 5 ] == 0x65 & AllBytes[ i + 6 ]  == 0x66 & AllBytes[ i + 7 ]  == 0x61 &
 										 AllBytes[ i + 8 ] == 0x75 & AllBytes[ i + 9 ] == 0x6C & AllBytes[ i + 10 ] == 0x74 & AllBytes[ i + 11 ] == 0x00 )
 								{
+										// если в модели нет блока вершин , то break // например pmarker.model 
+										if ( AllBytes[ i + 56 ] != 0x70 ) break; 
 
 								// 	читаем размер "блока" модели
-										byte[] ModelBlockSize = { AllBytes[ i + 12 + 0 ] , AllBytes[ i + 12 + 1 ] , AllBytes[ i + 12 + 2 ] , AllBytes[ i + 12 + 3 ] } ; 
+										byte[] ModelBlockSize = { AllBytes[ i + 12 + 0 ] , AllBytes[ i + 12 + 1 ] , AllBytes[ i + 12 + 2 ] , AllBytes[ i + 12 + 3 ] }; 
 										i_offset = BitConverter.ToInt32 ( ModelBlockSize , 0 ) ; 
 										i_begin = i ; i_end = i_begin + i_offset ; 
 
@@ -119,7 +123,7 @@ sealed class big2fbx
 										 AllBytes[ i + 8 ] == 0x74 & AllBytes[ i + 9 ] == 0x69 & AllBytes[ i + 10 ] == 0x6F & AllBytes[ i + 11 ] == 0x6E )
 								{
 										// через 20 байт ( от начала "сигнатуры" ) записано количество вершин , считываем и запоминаем его
-										byte[] vSize = { AllBytes[ i + 20 + 0 ] , AllBytes[ i + 20 + 1 ] , AllBytes[ i + 20 + 2 ] , AllBytes[ i + 20 + 3 ] } ; 
+										byte[] vSize = { AllBytes[ i + 20 + 0 ] , AllBytes[ i + 20 + 1 ] , AllBytes[ i + 20 + 2 ] , AllBytes[ i + 20 + 3 ] }; 
 										v_count = BitConverter.ToInt32 ( vSize , 0 ) ; // количество вершин
 
 										// эта цифра указывает сколько ( байт*4 ) надо считать // например она равна 6 , значит нужно считать 6 пар типа [ 00 00 00 00 ]
@@ -133,16 +137,18 @@ sealed class big2fbx
 
 										for ( int ii = 0 ; ii < vx_Hex_List.Count ; ii += 12 ) // float занимает 4 байта и их по три координаты
 										{	
-												byte[] fB1 = { vx_Hex_List[ ii + 0 ] , vx_Hex_List[ ii + 1 ] , vx_Hex_List[ ii + 2 ] , vx_Hex_List[ ii + 3 ] } ; 
-												byte[] fB2 = { vx_Hex_List[ ii + 4 ] , vx_Hex_List[ ii + 5 ] , vx_Hex_List[ ii + 6 ] , vx_Hex_List[ ii + 7 ] } ; 
-												byte[] fB3 = { vx_Hex_List[ ii + 8 ] , vx_Hex_List[ ii + 9 ] , vx_Hex_List[ ii + 10 ] , vx_Hex_List[ ii + 11 ] } ; 
+												byte[] fB1 = { vx_Hex_List[ ii + 0 ] , vx_Hex_List[ ii + 1 ] , vx_Hex_List[ ii + 2 ] , vx_Hex_List[ ii + 3 ] }; 
+												byte[] fB2 = { vx_Hex_List[ ii + 4 ] , vx_Hex_List[ ii + 5 ] , vx_Hex_List[ ii + 6 ] , vx_Hex_List[ ii + 7 ] }; 
+												byte[] fB3 = { vx_Hex_List[ ii + 8 ] , vx_Hex_List[ ii + 9 ] , vx_Hex_List[ ii + 10 ] , vx_Hex_List[ ii + 11 ] }; 
 
 												float v1 = BitConverter.ToSingle ( fB1 , 0 ) ; 
 												float v2 = BitConverter.ToSingle ( fB2 , 0 ) ; 
 												float v3 = BitConverter.ToSingle ( fB3 , 0 ) ; 
 
-												v_Str_List.Add ( v1 + "	,	" + v2 + "	,	" + v3 ) ; 
+												vx_Str_List.Add ( v1 + "	,	" + v2 + "	,	" + v3 ) ; 
 										}
+										
+										vx_Hex_List.Clear();
 								}
 
 								//жжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжж
@@ -152,7 +158,7 @@ sealed class big2fbx
 								if ( AllBytes[ i + 0 ] == 0x6E & AllBytes[ i + 1 ] == 0x6F & AllBytes[ i + 2 ]  == 0x72 & AllBytes[ i + 3 ]  == 0x6D &
 										 AllBytes[ i + 4 ] == 0x61 & AllBytes[ i + 5 ] == 0x6C & AllBytes[ i + 6 ]  == 0x73 & AllBytes[ i + 7 ]  == 0x00 )
 								{
-										byte[] vnSize = { AllBytes[ i + 16 + 0 ] , AllBytes[ i + 16 + 1 ] , AllBytes[ i + 16 + 2 ] , AllBytes[ i + 16 + 3 ] } ; 
+										byte[] vnSize = { AllBytes[ i + 16 + 0 ] , AllBytes[ i + 16 + 1 ] , AllBytes[ i + 16 + 2 ] , AllBytes[ i + 16 + 3 ] }; 
 										int vn_count = BitConverter.ToInt32 ( vnSize , 0 ) ; 
 
 										for ( int ii = 0 ; ii < vn_count*3*4 ; ii++ )
@@ -160,9 +166,9 @@ sealed class big2fbx
 
 										for ( int ii = 0 ; ii < vn_Hex_List.Count ; ii += 12 )
 										{
-												byte[] fB1 = { vn_Hex_List[ ii + 0 ] , vn_Hex_List[ ii + 1 ] , vn_Hex_List[ ii + 2 ] , vn_Hex_List[ ii + 3 ] } ; 
-												byte[] fB2 = { vn_Hex_List[ ii + 4 ] , vn_Hex_List[ ii + 5 ] , vn_Hex_List[ ii + 6 ] , vn_Hex_List[ ii + 7 ] } ; 
-												byte[] fB3 = { vn_Hex_List[ ii + 8 ] , vn_Hex_List[ ii + 9 ] , vn_Hex_List[ ii + 10 ] , vn_Hex_List[ ii + 11 ] } ; 
+												byte[] fB1 = { vn_Hex_List[ ii + 0 ] , vn_Hex_List[ ii + 1 ] , vn_Hex_List[ ii + 2 ] , vn_Hex_List[ ii + 3 ] }; 
+												byte[] fB2 = { vn_Hex_List[ ii + 4 ] , vn_Hex_List[ ii + 5 ] , vn_Hex_List[ ii + 6 ] , vn_Hex_List[ ii + 7 ] }; 
+												byte[] fB3 = { vn_Hex_List[ ii + 8 ] , vn_Hex_List[ ii + 9 ] , vn_Hex_List[ ii + 10 ] , vn_Hex_List[ ii + 11 ] }; 
 
 												float vn1 = BitConverter.ToSingle ( fB1 , 0 ) ; 
 												float vn2 = BitConverter.ToSingle ( fB2 , 0 ) ; 
@@ -170,6 +176,7 @@ sealed class big2fbx
 
 												vn_Str_List.Add ( vn1 + "	,	" + vn2 + "	,	" + vn3 ) ; 
 										}
+										vn_Hex_List.Clear();
 								}
 
 								//жжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжж
@@ -186,11 +193,11 @@ sealed class big2fbx
 /*sf*/							for ( fi = 0 ; fi < fs_count ; fi++ )	// повторяем необходимое кол-во раз равное кол-ву саб-мешей
 										{
 												byte[] f_count_four_bytes_int = { // читаем количество строчек f в файле obj // c 24 по 27
-												AllBytes[ id + 0 + offset ] , AllBytes[ id + 1 + offset ] , AllBytes[ id + 2 + offset ] , AllBytes[ id + 3 + offset ] } ; 
+												AllBytes[ id + 0 + offset ] , AllBytes[ id + 1 + offset ] , AllBytes[ id + 2 + offset ] , AllBytes[ id + 3 + offset ] }; 
 												int f_count = BitConverter.ToInt32 ( f_count_four_bytes_int , 0 ) ; // количество строк
 
 												byte[] f_count_four_bytes_int_size = { // читаем количество байт , которых нужно умножить на два // c 28 по 31
-												AllBytes[ id + 4 + 0 + offset ] , AllBytes[ id + 4 + 1 + offset ] , AllBytes[ id + 4 + 2 + offset ] , AllBytes[ id + 4 + 3 + offset ] } ; 
+												AllBytes[ id + 4 + 0 + offset ] , AllBytes[ id + 4 + 1 + offset ] , AllBytes[ id + 4 + 2 + offset ] , AllBytes[ id + 4 + 3 + offset ] }; 
 												int f_size_count = BitConverter.ToInt32 ( f_count_four_bytes_int_size , 0 ) ; // 
 
 										//	эта цифра указывает сколько байт*2 надо считать // например она равна 6 , значит нужно считать 6 пар типа [ 00 00 ]
@@ -209,21 +216,23 @@ sealed class big2fbx
 
 												for ( int iii = 0 ; iii < f_Hex_List.Count ; iii += 6 )
 												{
-														byte[] twoBytes1 = { f_Hex_List[ iii + 0 ] , f_Hex_List[ iii + 1 ] } ; // 00 00 
-														byte[] twoBytes2 = { f_Hex_List[ iii + 2 ] , f_Hex_List[ iii + 3 ] } ; // 01 00
-														byte[] twoBytes3 = { f_Hex_List[ iii + 4 ] , f_Hex_List[ iii + 5 ] } ; // 02 00
+														byte[] twoBytes1 = { f_Hex_List[ iii + 0 ] , f_Hex_List[ iii + 1 ] }; // 00 00 
+														byte[] twoBytes2 = { f_Hex_List[ iii + 2 ] , f_Hex_List[ iii + 3 ] }; // 01 00
+														byte[] twoBytes3 = { f_Hex_List[ iii + 4 ] , f_Hex_List[ iii + 5 ] }; // 02 00
 
 												//	convert vertex index из числа в строку
 
 														Int16 vi1		=	( Int16 )BitConverter.ToInt16 ( twoBytes1 , 0 ) ; // 0
 														Int16 vi2		=	( Int16 )BitConverter.ToInt16 ( twoBytes2 , 0 ) ; // 1
-														Int16 vi3_	=	( Int16 )BitConverter.ToInt16 ( twoBytes2 , 0 ) ; // 1
+														Int16 vi3_	=	( Int16 )BitConverter.ToInt16 ( twoBytes3 , 0 ) ; // 1
 														Int32 vi3		=	( ( Int16 )BitConverter.ToInt16 ( twoBytes3 , 0 ) + 1 ) / ( -1 ) ; // 2 или -3
 
 												//	SortedList хранит "уникальные" vertex index из граней сабмеша
 												//	чтобы потом выбирать вершины из общего списка для каждой сабмеши
 
-														v_index_SubM.Add(vi1);	v_index_SubM.Add(vi2);	v_index_SubM.Add(vi3_);
+														vx_index_SubM.Add(vi1);	
+														vx_index_SubM.Add(vi2);	
+														vx_index_SubM.Add(vi3_);
 
 												//	создаём строки вида f v1 v2 ((vi3 + 1)/( -1 ))
 														string faces = String.Format ( "{0}, {1}, {2}" , vi1 , vi2 , vi3 ) ;
@@ -237,14 +246,13 @@ sealed class big2fbx
 												subMeshFacesStr.Add ( f_Str_List.ToList() ) ; // добавляем строки в subMeshFacesStr
 												f_Str_List.Clear(); // очищаем для следущей сабмеши
 
-												v_index_List.Add ( v_index_SubM.ToList() ) ;
-												v_index_SubM.Clear(); 
+												vx_index_List.Add ( vx_index_SubM.ToList() ) ;
+												vx_index_SubM.Clear(); 
 
 												f_Hex_List.Clear(); 
-										//	v_index_List.Clear();	//	в самом конце
-
 										}
-								} // if // ИЩЕМ ГРАНИ FACES ( prims )
+
+								}// if // ИЩЕМ ГРАНИ FACES ( prims )
 
 //жжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжж
 //жжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжж
@@ -253,19 +261,20 @@ sealed class big2fbx
 // COLOR
 
 /*
-		LayerElementColor: 0 {
+		LayerElementColor: 0 
+		{
 			Version: 101
 			Name: "Col"
-			MappingInformationType: "ByVertice"
-			ReferenceInformationType: "indexToDirect"
+			MappingInformationType: "ByVertex"
+			ReferenceInformationType: "IndexToDirect"
 
 			Colors: *12 {
 				a: 0.996078431606293,0.996078431606293,0.996078431606293,1,1,1,1,1,0.992156863212585,0.992156863212585,0.992156863212585,1
-			} 
+			}
 
-			Colorindex: *4616 {
+			ColorIndex: *4616 {
 				a: ...
-			} 
+			}
 		}
 */
 
@@ -279,7 +288,9 @@ sealed class big2fbx
 
 								if ( AllBytes[ i + 0 ] == 0x75 & AllBytes[ i + 1 ] == 0x76 & AllBytes[ i + 2 ]  == 0x73 & AllBytes[ i + 3 ]  == 0x00 ) 
 								{
-										byte[] vtSize = { AllBytes[ i + 20 + 0 ] , AllBytes[ i + 20 + 1 ] , AllBytes[ i + 20 + 2 ] , AllBytes[ i + 20 + 3 ] } ; 
+										uvs_flag = true ; 
+
+										byte[] vtSize = { AllBytes[ i + 20 + 0 ] , AllBytes[ i + 20 + 1 ] , AllBytes[ i + 20 + 2 ] , AllBytes[ i + 20 + 3 ] }; 
 										int vt_uv = BitConverter.ToInt32 ( vtSize , 0 ) ; 
 
 										for ( int ii = 0 ; ii < vt_uv*2*4 ; ii++ ) // количество_вершин * 3 координаты * 4 байта
@@ -287,14 +298,17 @@ sealed class big2fbx
 
 										for ( int ii = 0 ; ii < vt_Hex_List.Count ; ii += 8 )
 										{
-												byte[] fB1 = { vt_Hex_List[ ii + 0 ] , vt_Hex_List[ ii + 1 ] , vt_Hex_List[ ii + 2 ] , vt_Hex_List[ ii + 3 ] } ; 
-												byte[] fB2 = { vt_Hex_List[ ii + 4 ] , vt_Hex_List[ ii + 5 ] , vt_Hex_List[ ii + 6 ] , vt_Hex_List[ ii + 7 ] } ; 
+												byte[] fB1 = { vt_Hex_List[ ii + 0 ] , vt_Hex_List[ ii + 1 ] , vt_Hex_List[ ii + 2 ] , vt_Hex_List[ ii + 3 ] }; 
+												byte[] fB2 = { vt_Hex_List[ ii + 4 ] , vt_Hex_List[ ii + 5 ] , vt_Hex_List[ ii + 6 ] , vt_Hex_List[ ii + 7 ] }; 
 
 												float vu = BitConverter.ToSingle ( fB1 , 0 ) ; 
 												float vv = ( -1 )*BitConverter.ToSingle ( fB2 , 0 ) ; 
 
-												vt_uv_str_List.Add ( vu + "	,	" + vv ) ; 
+												vt_uv___str_List1.Add ( vu + "	,	" + vv ) ; 
 										}
+
+										vt_Hex_List.Clear();
+								//	if (AllBytes[ i + 0 ]найдено второе увс) то
 								}
 
 								//жжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжж
@@ -305,7 +319,7 @@ sealed class big2fbx
 										 AllBytes[ i + 4 ] == 0x74 & AllBytes[ i + 5 ] == 0x65 & AllBytes[ i + 6 ]  == 0x78 & AllBytes[ i + 7 ]  == 0x74 &	//	74 65 78 74
 										 AllBytes[ i + 8 ] == 0x75 & AllBytes[ i + 9 ] == 0x72 & AllBytes[ i + 10 ] == 0x65 & AllBytes[ i + 11 ] == 0x73 )	//	75 72 65 73
 								{
-										byte[] uvSize = { AllBytes[ i + 20 + 0 ] , AllBytes[ i + 20 + 1 ] , AllBytes[ i + 20 + 2 ] , AllBytes[ i + 20 + 3 ] } ; 
+										byte[] uvSize = { AllBytes[ i + 20 + 0 ] , AllBytes[ i + 20 + 1 ] , AllBytes[ i + 20 + 2 ] , AllBytes[ i + 20 + 3 ] }; 
 										int uvCount = BitConverter.ToInt32 ( uvSize , 0 ) ; // получили количество индексов
 
 										for ( int ii = 0 ; ii < uvCount*2 ; ii++ )	//	одно число занимает два байта	//	прочитали если индексов 4 то 8 байт
@@ -313,13 +327,15 @@ sealed class big2fbx
 
 										for ( int iii = 0 ; iii < uv_Hex_List.Count ; iii += 2 )	//	добавляем индексы в виде строк в файл
 										{
-												byte[] twoBytes1 = { uv_Hex_List[ iii + 0 ] , uv_Hex_List[ iii + 1 ] } ; // 00 00  
+												byte[] twoBytes1 = { uv_Hex_List[ iii + 0 ] , uv_Hex_List[ iii + 1 ] }; // 00 00  
 												Int16 st1 = ( Int16 )BitConverter.ToInt16 ( twoBytes1 , 0 ) ; // 0
 
 												string uvs = String.Format ( "{0}" , st1 ) ; 
 												if ( iii != uv_Hex_List.Count-2 ) uvs = uvs + "," ; 
 												vt_uv_i_str_List.Add ( uvs ) ; // vt_uv_i_str_List.Add ( st1 + "," ) ; 
 										}
+
+										uv_Hex_List.Clear();	//	очищаем байтовый-список uvs index блока, которые уже добавлены в виде строк
 								}
 
 								//жжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжж
@@ -361,22 +377,13 @@ GlobalSettings:  {
 ; Documents Description
 ; ----------------------------------------------------
 
-Documents:  {
+Documents:  
+{
 	Count: 1
-	Document: 1, ""Scene"", ""Scene"" {
-		Properties70:  {
-			P: ""SourceObject"", ""object"", """", """"
-			P: ""ActiveAnimStackName"", ""KString"", """", """", """"
-		}
+	Document: 1, """", ""Scene""
+	{
 		RootNode: " + rootNode + @"
 	}
-}
-
-; ==================================================== 
-; Document References
-; ----------------------------------------------------
-
-References: {
 }
 
 ; ==================================================== 
@@ -387,20 +394,44 @@ Definitions:
 {
 	Version: 100
 	Count: " + (  ( fs_count*5 ) + 1 ) + @"
-	ObjectType: ""GlobalSettings"" {	Count: 1	}
-	ObjectType: ""Model""			{Count: " + fs_count + @"	PropertyTemplate: ""FbxNode"" { } }
-	ObjectType: ""Material""	{Count: " + fs_count + @"	PropertyTemplate: ""FbxSurfacePhong"" { } }
-	ObjectType: ""Texture""		{Count: " + fs_count + @"	PropertyTemplate: ""FbxFileTexture"" { } }
-	ObjectType: ""Video""			{Count: " + fs_count + @"	PropertyTemplate: ""FbxVideo"" { } }
-	ObjectType: ""Geometry""	{Count: " + fs_count + @"	PropertyTemplate: ""FbxMesh"" { } }
+
+	ObjectType: ""GlobalSettings"" {	
+	Count: 1	
+	}
+	ObjectType: ""Model""	{
+		Count: " + fs_count + @"	
+		PropertyTemplate: ""FbxNode"" { 	
+		}
+	}
+	ObjectType: ""Material""	{
+		Count: " + fs_count + @"	
+		PropertyTemplate: ""FbxSurfacePhong"" { 	
+		}
+	}
+	ObjectType: ""Texture""	{
+		Count: " + fs_count + @"	
+		PropertyTemplate: ""FbxFileTexture"" { 	
+		}
+	}
+	ObjectType: ""Video""	{
+		Count: " + fs_count + @"
+		PropertyTemplate: ""FbxVideo"" { 	
+		}
+	}
+	ObjectType: ""Geometry""	{
+		Count: " + fs_count + @"
+		PropertyTemplate: ""FbxMesh"" { 	
+		}
+	}
 }
 
 ; ==================================================== 
 ; Object properties
 ; ----------------------------------------------------
 
-Objects: {"
-
+Objects: 
+{
+"
 });
 
 /**//**//**//**//**//**//**//**//**//**//**//**//**//**//**//**//**//**//**//**//**//**//**//**//**//**/
@@ -414,26 +445,31 @@ for ( int smi = 0 ; smi < fs_count ; smi++ )	//	для каждой сабмеш
 
 AppendAllTextToObjFile ( writePath , new List<string> ( ) {
 
-@"	Geometry: " + (++index) + @", ""Geometry::SMg"", ""Mesh"" {
+@"
+	Geometry: " + (++index) + @", ""Geometry::SMg"", ""Mesh"" 
+	{
 "
 });
 
 //*****************************************************************************
-//	ДОБАВЛЯЕМ СПИСОК ВЕРШИН v_index_List
+//	ДОБАВЛЯЕМ СПИСОК ВЕРШИН vx_index_List
 //*****************************************************************************
 
 AppendAllTextToObjFile ( writePath , new List<string> ( ) {
-@"	Vertices: *" + v_index_List[smi].Count + @" { a: "
+@"	Vertices: *" + vx_index_List[smi].Count + @" { 
+a: "
 });
 
-for ( int w = 0 ; w < v_index_List[smi].Count ; w++ )
+for ( int w = 0 ; w < vx_index_List[smi].Count ; w++ )
 {
-		if (w != v_index_List[smi].Count-1 )	
-				v_Str_List[v_index_List[smi][w]] = 
-				v_Str_List[v_index_List[smi][w]] + ",";
+		if (w != vx_index_List[smi].Count-1 )	
+				vx_Str_List[vx_index_List[smi][w]] = 
+				vx_Str_List[vx_index_List[smi][w]] + ",";
 
-		AppendAllTextToObjFile ( writePath , new List<string> ( ) {
-		@"	" + v_Str_List[v_index_List[smi][w]]		});
+		AppendAllTextToObjFile ( writePath , new List<string> ( ) 
+		{
+		@"	" + vx_Str_List[vx_index_List[smi][w]]
+		});
 }
 
 AppendAllTextToObjFile ( writePath , new List<string> ( ) {
@@ -445,18 +481,19 @@ AppendAllTextToObjFile ( writePath , new List<string> ( ) {
 //*****************************************************************************
 
 AppendAllTextToObjFile ( writePath , new List<string> ( ) {
-@"	PolygonVertexindex: *" + subMeshFacesStr[smi].Count + @" { a: "
+@"	PolygonVertexIndex: *" + subMeshFacesStr[smi].Count + @" { 
+a: "
 });
 
 for ( int w = 0 ; w < subMeshFacesStr[smi].Count ; w++ )
 {
 		AppendAllTextToObjFile ( writePath , new List<string> ( ) 
 		{
-		@"	" + subMeshFacesStr[smi][w]
+				@"	" + subMeshFacesStr[smi][w]
 		});
 }
 
-AppendAllTextToObjFile ( writePath , new List<string> ( ) {@"	}  "});
+AppendAllTextToObjFile ( writePath , new List<string> ( ) {@"	} "});
 
 //*****************************************************************************
 //	просто нужные строчки
@@ -465,9 +502,8 @@ AppendAllTextToObjFile ( writePath , new List<string> ( ) {@"	}  "});
 AppendAllTextToObjFile ( writePath , new List<string> ( ) 
 {
 @"	
-; Edges: *количество_рёбер {a: ... }
-
-	GeometryVersion: 124"});
+	GeometryVersion: 124"
+});
 
 //*****************************************************************************
 //	ДОБАВЛЯЕМ СПИСОК НОРМАЛЕЙ vn_Str_List
@@ -478,60 +514,69 @@ AppendAllTextToObjFile ( writePath , new List<string> ( ) {
 	LayerElementNormal: 0 	{
 	Version: 101
 	Name: """"
-	MappingInformationType: ""ByVertice""
-	ReferenceInformationType: ""Direct""
+	MappingInformationType: ""ByVertex""
+	ReferenceInformationType: ""IndexToDirect""
 
-	Normals: *" + v_index_List[smi].Count + @" { a: "
+	Normals: *" + vx_index_List[smi].Count + @" { 
+	a: "
 });
 
-for ( int w = 0 ; w < v_index_List[smi].Count ; w++ )
+for ( int w = 0 ; w < vx_index_List[smi].Count ; w++ )
 {
-		if (w != v_index_List[smi].Count-1 )	
-				vn_Str_List[v_index_List[smi][w]] = 
-				vn_Str_List[v_index_List[smi][w]] + ",";
+		if (w != vx_index_List[smi].Count-1 )	
+				vn_Str_List[vx_index_List[smi][w]] = 
+				vn_Str_List[vx_index_List[smi][w]] + ",";
 
-		AppendAllTextToObjFile ( writePath , new List<string> ( ) {
-		@"			" + vn_Str_List[v_index_List[smi][w]]		});
+		AppendAllTextToObjFile ( writePath , new List<string> ( ) 
+		{
+		@"			" + vn_Str_List[vx_index_List[smi][w]]
+		});
 }
 
 AppendAllTextToObjFile ( writePath , new List<string> ( ) {
 @"
-		; NormalsIndex: *" + v_index_List[smi].Count + @" { a: ...}" +
+		; NormalsIndex: *" + vx_index_List[smi].Count + @" { a: ...}" +
 @"
 		}
 	}
-"});
+"
+});
 
 //*****************************************************************************
-// vt_uv_str_List
+// vt_uv___str_List1
 //*****************************************************************************
+
+// if ( есть блок uv и число uv совпадает с числом вершин ) 
+// например в psntanm_lod.model их в два раза меньше 
+if ( uvs_flag && ( vt_uv___str_List1.Count == vx_Str_List.Count ) )
+{
 
 AppendAllTextToObjFile ( writePath , new List<string> ( ) {
 @"	LayerElementUV: 0 	{ 
 		Version: 101
 		Name: ""diffuse_uv_layer""
-		MappingInformationType: ""ByVertice""
-		ReferenceInformationType: ""indexToDirect""
-		UV: *" + v_index_List[smi].Count + @" { a: "
+		MappingInformationType: ""ByVertex""
+		ReferenceInformationType: ""IndexToDirect""
+		UV: *" + vx_index_List[smi].Count + @" { 
+		a: "
 });
 
-for ( int w = 0 ; w < v_index_List[smi].Count ; w++ )
+for ( int w = 0 ; w < vx_index_List[smi].Count ; w++ )
 {
-		if (w != v_index_List[smi].Count-1 )	
-				vt_uv_str_List[v_index_List[smi][w]] = 
-				vt_uv_str_List[v_index_List[smi][w]] + ",";
+		if (w != vx_index_List[smi].Count-1 )	
+				vt_uv___str_List1[vx_index_List[smi][w]] = 
+				vt_uv___str_List1[vx_index_List[smi][w]] + ",";
 
-		AppendAllTextToObjFile ( writePath , new List<string> ( ) {
-		@"		" + vt_uv_str_List[v_index_List[smi][w]]		});
+		AppendAllTextToObjFile 
+		( writePath , new List<string> ( ) 
+		{
+		@"		" + vt_uv___str_List1[vx_index_List[smi][w]]		
+		});
 }
 
 AppendAllTextToObjFile ( writePath , new List<string> ( ) {
-@"
-		; UVIndex: * X { a: ...}" +
-@"
-		}
-	}
-"});
+@"		}" 
+});
 
 //*****************************************************************************
 //*****************************************************************************
@@ -539,21 +584,48 @@ AppendAllTextToObjFile ( writePath , new List<string> ( ) {
 
 // UVIndex
 
+AppendAllTextToObjFile ( writePath , new List<string> ( ) {
+@"
+
+ UVIndex: *4 {
+a:
+0,1,2,3
+ }
+"
+});
+
 //*****************************************************************************
 //*****************************************************************************
 //*****************************************************************************
 
+AppendAllTextToObjFile ( writePath , new List<string> ( ) // закрываем LayerElementUV
+{
+@"
+		}
+"
+});
+
+}	//	if (uvs_flag)
+
+uvs_flag = false;
+
+//*****************************************************************************
+//*****************************************************************************
+//*****************************************************************************
+
+/*
 AppendAllTextToObjFile ( writePath , new List<string> ( ) {
 @"	LayerElementMaterial: 0 	{
 		Version: 101
 		Name: """"
-		MappingInformationType: ""ByVertice"" ; AllSame
-		ReferenceInformationType: ""indexToDirect""
+		MappingInformationType: ""ByVertex"" ; AllSame
+		ReferenceInformationType: ""IndexToDirect""
 		Materials: *1 {
 			a: 0
-		} 
+		}
 	}
 "});
+*/
 
 //*****************************************************************************
 //*****************************************************************************
@@ -561,11 +633,25 @@ AppendAllTextToObjFile ( writePath , new List<string> ( ) {
 
 AppendAllTextToObjFile ( writePath , new List<string> ( ) {
 @"	Layer: 0 	{
+
 		Version: 100
-		LayerElement:  {		Type: ""LayerElementNormal""		Typedindex: 0			}
-		LayerElement:  {		Type: ""LayerElementMaterial""		Typedindex: 0			}
-		LayerElement:  {		Type: ""LayerElementColor""		Typedindex: 0			}
-		LayerElement:  {		Type: ""LayerElementUV""		Typedindex: 0			}
+
+		LayerElement:  	{		
+			Type: ""LayerElementNormal""		
+			TypedIndex: 0			
+		}
+		LayerElement:  {
+			Type: ""LayerElementMaterial""
+			TypedIndex: 0			
+		}
+		LayerElement:  {
+			Type: ""LayerElementColor""
+			TypedIndex: 0			
+		}
+		LayerElement:  {		
+			Type: ""LayerElementUV""		
+			TypedIndex: 0			
+		}
 	}
 }
 "
@@ -577,7 +663,7 @@ AppendAllTextToObjFile ( writePath , new List<string> ( ) {
 		Version: 232
 		Properties70:  {
 			P: ""InheritType"", ""enum"", """", """",1
-			P: ""DefaultAttributeindex"", ""int"", ""Integer"", """",0
+			P: ""DefaultAttributeIndex"", ""int"", ""Integer"", """",0
 			P: ""Lcl Translation"", ""Lcl Translation"", """", ""A"",740.226989746094,0,-464.880859375
 			P: ""Lcl Rotation"", ""Lcl Rotation"", """", ""A"",-89.999995674289,-89.999995674289,0
 			P: ""Lcl Scaling"", ""Lcl Scaling"", """", ""A"",100,100,100
@@ -626,7 +712,7 @@ AppendAllTextToObjFile ( writePath , new List<string> ( ) {
 
 });
 
-} //	for для добавления каждой сабмеши
+}//	for для добавления каждой сабмеши
 
 /**//**//**//**//**//**//**//**//**//**//**//**//**//**//**//**//**//**//**//**//**//**//**//**//**//**/
 /**//**//**//**//**//**//**//**//**//**//**//**//**//**//**//**//**//**//**//**//**//**//**//**//**//**/
@@ -634,18 +720,14 @@ AppendAllTextToObjFile ( writePath , new List<string> ( ) {
 
 AppendAllTextToObjFile ( writePath , new List<string> ( ) {
 
-@"
-} 
-
-; закрывает Objects
+@"} ; закрывает Objects
 
 ; ====================================================
 ; Object connections
 ; -----------------------------------------------------
 
-Connections:  
+Connections: ; " + fs_count + @"
 {"
-
 }); 
 
 //*****************************************************************************
@@ -656,11 +738,11 @@ for ( int coni = 0 , coniplus = 0 ; coni < fs_count ; coni++ , coniplus += 4 )
 
 @"	; -----------------------------------------------------
 
-		C: ""OO"",	" + rootNode + @"	,	" + (coni+coniplus+2) + @"	;	Model::RootNode, Model::SM
-		C: ""OO"",	" + (coni+coniplus+1) + @"	,	" + (coni+coniplus+2) + @"	; Geometry::SMg, Model::SM
-		C: ""OO"",	" + (coni+coniplus+3) + @"	,	" + (coni+coniplus+2) + @"	; Material::MaterialMap, Model::SM
-		C: ""OP"",	" + (coni+coniplus+5) + @"	,	" + (coni+coniplus+3) + @"	; Texture::IMAGE, Material::MaterialMap
-		C: ""OO"",	" + (coni+coniplus+4) + @"	,	" + (coni+coniplus+5) + @"	; Video::videoIMAGE, Texture::IMAGE
+		C: ""OO"",	" + (coni+coniplus+2) + @"	,	" + rootNode 					+ @"											;	Model::RootNode, Model::SM
+		C: ""OO"",	" + (coni+coniplus+1) + @"	,	" + (coni+coniplus+2) + @"											; Geometry::SMg, Model::SM
+		C: ""OO"",	" + (coni+coniplus+3) + @"	,	" + (coni+coniplus+2) + @"											; Material::MaterialMap, Model::SM
+		C: ""OP"",	" + (coni+coniplus+5) + @"	,	" + (coni+coniplus+3) + @"	, ""DiffuseColor""	; Texture::IMAGE, Material::MaterialMap
+		C: ""OO"",	" + (coni+coniplus+4) + @"	,	" + (coni+coniplus+5) + @"											; Video::videoIMAGE, Texture::IMAGE
 		"
 
 	}); 
@@ -676,37 +758,27 @@ AppendAllTextToObjFile ( writePath , new List<string> ( ) {
 
 });
 
-//*****************************************************************************
+//жжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжж
 
-AppendAllTextToObjFile ( writePath , new List<string> ( ) {
+vx_index_List.Clear();
+vx_Str_List.Clear();
+vn_Str_List.Clear();
+vt_uv___str_List1.Clear();
+vt_uv_i_str_List.Clear();
 
-@"
-; ==================================================== 
-; Takes section
-; -----------------------------------------------------
+subMeshFacesStr.Clear();	//	очищаем список саб-мешей данной модели
 
-Takes:  {
-	Current: """"
-}
-"
-});
-								//жжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжж
-
-				subMeshFacesStr.Clear();
-				v_index_List.Clear();
-				vn_Hex_List.Clear(); 
-				vx_Hex_List.Clear(); 
 
 								} // если нашли конец модели 
 								
 							//жжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжж
 
-						} // for // прошли по всему содержимому массива байт прочитанных из файла
+						}// for // прошли по всему содержимому массива байт прочитанных из файла
 
-		 		} // foreach // прошли по каждому файлу
+		 		}// foreach // прошли по каждому файлу
 
-		} // Main
+		}// Main
 
-} // class
+}// class
 
 //жжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжж

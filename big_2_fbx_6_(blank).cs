@@ -1,3 +1,5 @@
+// int qq = 0 ; foreach ( var q in vx_Str_List ) { Console.WriteLine ( qq + " " + q ) ; qq++ ; }
+
 //жжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжж
 	using System ; using System.IO ; using System.Linq ; using System.Text ; using System.Collections ; using System.Collections.Generic ; 
 //жжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжж
@@ -76,6 +78,16 @@ sealed class big2fbx
 				List<byte> vt_Hex_List = new List<byte>()	; List<string> vt_uv___str_List1	= new List<string>(); // uvs1
 																									; List<string> vt_uv___str_List2	= new List<string>(); // uvs2
 				List<byte> uv_Hex_List = new List<byte>()	; List<string> vt_uv_i_str_List = new List<string>(); // uvs_index
+
+//жжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжж
+
+						 List<int>       VertexIndexList = new      List<int>();	// сюда будем добавлять появляющиеся/считываемые индексы вершин одной сабмеши
+				List<List<int>> List_VertexIndexList = new List<List<int>>();	// сюда будем добавлять сформированные списки индексов вершин каждой сабмеши
+
+						 List<int>       UniqVertexIndexList = new      List<int>();	//	сюда будем помещать уникальные индексы вершин одной сабмеши
+				List<List<int>> List_UniqVertexIndexList = new List<List<int>>();	//	сюда будем помещать сформированные списки индексов вершин каждой сабмеши
+
+						List<string> faceIndexString_List = new List<string>();	//	список строк содержащих PolygonVertexIndex-блок каждой сабмеши
 
 //жжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжж
 
@@ -193,11 +205,11 @@ sealed class big2fbx
 /*sf*/							for ( fi = 0 ; fi < fs_count ; fi++ )	// повторяем необходимое кол-во раз равное кол-ву саб-мешей
 										{
 												byte[] f_count_four_bytes_int = { // читаем количество строчек f в файле obj // c 24 по 27
-												AllBytes[ id + 0 + offset ] , AllBytes[ id + 1 + offset ] , AllBytes[ id + 2 + offset ] , AllBytes[ id + 3 + offset ] }; 
+												AllBytes[id+0+offset] , AllBytes[id+1+offset] , AllBytes[id+2+offset] , AllBytes[id+3+offset] }; 
 												int f_count = BitConverter.ToInt32 ( f_count_four_bytes_int , 0 ) ; // количество строк
 
 												byte[] f_count_four_bytes_int_size = { // читаем количество байт , которых нужно умножить на два // c 28 по 31
-												AllBytes[ id + 4 + 0 + offset ] , AllBytes[ id + 4 + 1 + offset ] , AllBytes[ id + 4 + 2 + offset ] , AllBytes[ id + 4 + 3 + offset ] }; 
+												AllBytes[id+4+0+offset] , AllBytes[id+4+1+offset] , AllBytes[id+4+2+offset] , AllBytes[id+4+3+offset] }; 
 												int f_size_count = BitConverter.ToInt32 ( f_count_four_bytes_int_size , 0 ) ; // 
 
 										//	эта цифра указывает сколько байт*2 надо считать // например она равна 6 , значит нужно считать 6 пар типа [ 00 00 ]
@@ -227,9 +239,10 @@ sealed class big2fbx
 														Int16 vi3_	=	( Int16 )BitConverter.ToInt16 ( twoBytes3 , 0 ) ; // 1
 														Int32 vi3		=	( ( Int16 )BitConverter.ToInt16 ( twoBytes3 , 0 ) + 1 ) / ( -1 ) ; // 2 или -3
 
-												//	SortedList хранит "уникальные" vertex index из граней сабмеша
+												//	SortedSet<int> хранит "уникальные" vertex index из граней сабмеша
 												//	чтобы потом выбирать вершины из общего списка для каждой сабмеши
 
+													//SortedSet<int>.Add(int);
 														vx_index_SubM.Add(vi1);	
 														vx_index_SubM.Add(vi2);	
 														vx_index_SubM.Add(vi3_);
@@ -240,19 +253,70 @@ sealed class big2fbx
 												//	if ( iii != f_Hex_List.Count - 6 ) faces = faces + "," ;
 												//	это не работает , да и запятая не нужна, потому что отрицательное значение индекса вершины , говорит об окончании
 
+													//List<string>.Add(String) ;
 														f_Str_List.Add ( faces ) ; // добавляем строку вида 1 2 -2 в список граней
-												}
+
+//\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+
+if (!UniqVertexIndexList.Contains(vi1 )) UniqVertexIndexList.Add (vi1 ) ; 
+if (!UniqVertexIndexList.Contains(vi2 )) UniqVertexIndexList.Add (vi2 ) ; 
+if (!UniqVertexIndexList.Contains(vi3_)) UniqVertexIndexList.Add (vi3_) ; 
+
+VertexIndexList.Add(vi1 );	
+VertexIndexList.Add(vi2 );	
+VertexIndexList.Add(vi3_);
+
+///////////////////////////////////////////////////////////
+
+												} // внутренний цикл
+
+List_UniqVertexIndexList.Add(UniqVertexIndexList.ToList());
+														 UniqVertexIndexList.Clear();
+
+List_VertexIndexList.Add(VertexIndexList.ToList());
+												 VertexIndexList.Clear();
+
+										//--------------------------------------------------------------------------------------------------------------
 
 												subMeshFacesStr.Add ( f_Str_List.ToList() ) ; // добавляем строки в subMeshFacesStr
 												f_Str_List.Clear(); // очищаем для следущей сабмеши
 
 												vx_index_List.Add ( vx_index_SubM.ToList() ) ;
 												vx_index_SubM.Clear(); 
-
 												f_Hex_List.Clear(); 
-										}
 
-								}// if // ИЩЕМ ГРАНИ FACES ( prims )
+										} // внешний цикл
+
+	int[][] NewVertexIndex = new int[fs_count][];
+
+	for (int iiii = 0 ; iiii < List_VertexIndexList.Count; iiii++ )
+	{	
+			NewVertexIndex[iiii] = List_VertexIndexList[iiii].ToArray();	//	инициализируем значениями
+	}
+
+	for (int i_ = 0 ; i_ < List_VertexIndexList.Count ; i_++)										{
+		for (int j = 0 ; j < List_UniqVertexIndexList.Count ; j++)								{
+			for (int k = 0 ; k < List_VertexIndexList[i_].Count ; k++)							{
+				for (int l = 0 ; l < List_UniqVertexIndexList[j].Count ; l++)					{
+					if (List_VertexIndexList[i_][k] == List_UniqVertexIndexList[j][l]) 	{
+						NewVertexIndex[i_][k] = l ; break; 												}	}	}	}	}
+
+string faceIndexString="";
+
+for (int i__ = 0 ; i__ < fs_count ; i__++)
+{
+		for (int j = 0 , j2 = 1 ; j < NewVertexIndex[i__].Length ; j++, j2++)
+		{
+			if ( j2 % 3 == 0 ) NewVertexIndex[i__][j] = (NewVertexIndex[i__][j] + 1 ) / ( -1 );
+			var stringsArray = NewVertexIndex[i__].Select(ind => ind.ToString()).ToArray();
+			faceIndexString = string.Join(",", stringsArray);
+			
+		//Console.Write( NewVertexIndex[i__][j] + " " );
+		}	
+		faceIndexString_List.Add(faceIndexString);
+}
+								}	// if // ИЩЕМ ГРАНИ FACES ( prims )
+
 
 //жжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжж
 //жжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжж
@@ -485,13 +549,10 @@ AppendAllTextToObjFile ( writePath , new List<string> ( ) {
 a: "
 });
 
-for ( int w = 0 ; w < subMeshFacesStr[smi].Count ; w++ )
+AppendAllTextToObjFile ( writePath , new List<string> ( ) 
 {
-		AppendAllTextToObjFile ( writePath , new List<string> ( ) 
-		{
-				@"	" + subMeshFacesStr[smi][w]
-		});
-}
+		@"	" + faceIndexString_List[smi]
+});
 
 AppendAllTextToObjFile ( writePath , new List<string> ( ) {@"	} "});
 
@@ -765,9 +826,11 @@ vx_Str_List.Clear();
 vn_Str_List.Clear();
 vt_uv___str_List1.Clear();
 vt_uv_i_str_List.Clear();
-
 subMeshFacesStr.Clear();	//	очищаем список саб-мешей данной модели
 
+List_VertexIndexList.Clear();
+List_UniqVertexIndexList.Clear();
+faceIndexString_List.Clear();
 
 								} // если нашли конец модели 
 								

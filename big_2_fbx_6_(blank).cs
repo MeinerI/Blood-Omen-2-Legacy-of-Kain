@@ -1,66 +1,46 @@
-// int qq = 0 ; foreach ( var q in vx_Str_List ) { Console.WriteLine ( qq + " " + q ) ; qq++ ; }
-
 //жжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжж
-	using System ; using System.IO ; using System.Linq ; using System.Text ; using System.Collections ; using System.Collections.Generic ; 
+using System; using System.IO; using System.Linq; using System.Text; using System.Collections; using System.Collections.Generic; 
 //жжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжж
 
 sealed class big2fbx
 {
-		static int   i = 0 ; // индекс в массиве байт всего файла	// используется в "вычислении" граней
+		static int   i = 0; // индекс в массиве байт всего файла	// используется в "вычислении" граней
 
 //	это для того , чтобы расчитать конец блока модели и записать в файл теги идущие после её геометрии
-		static int   i_begin = 0 ; // индекс начала блока модели
-		static int   i_offset = 0 ; // индекс смещения блока модели
-		static int   i_end = 0 ; // индекс конца блока модели
+		static int   i_begin = 0; // индекс начала блока модели
+		static int   i_offset = 0; // индекс смещения блока модели
+		static int   i_end = 0; // индекс конца блока модели
 
-		static string big_path ; // хранит путь к файлу *.big
-		static string writePath ; // хранит путь к файлу *[ i ].fbx
+		static string big_path; // хранит путь к файлу *.big
+		static string writePath; // хранит путь к файлу *[i ].fbx
 
-		static int v_count = 0 ; // хранит количество вершин , которому будет равно кол-во нормалей 
-
-		static int fs_count = 0 ; // количество сабмешей и это же количество моделей в сцене 
-	//static int f_count_sum = 0 ; // хранит общее количество граней всех сабмешей
-		static int fi = 0 ; // используется как индекс в списке списков 
-
-	//static int uvCount = 0 ; // чтобы UVindex был виден в блоке LayerElementUV
-	//static List<string> vt_uv_i_str_List_dub ; // дублирующее значение UVindex для второго набора
-
-		static int rootNode = 0 ; // всегда индекс этого узла равен нолю для удобства в блоке connections
+		static int v_count = 0; // хранит количество вершин , которому будет равно кол-во нормалей 
+		static int fs_count = 0; // количество сабмешей и это же количество моделей в сцене 
+		static int fi = 0; // используется как индекс в списке списков 
+		static int rootNode = 0; // всегда индекс этого узла равен нолю для удобства в блоке connections
 		
-		static string[] files ; // зачем я это сюда вынес ?
+		static string[] files; // зачем я это сюда вынес ?
 
-		static bool uvs_flag = false ; // у некоторых моделей отсутствует блок uv // например detector.model
+		static bool uvs_flag = false; // у некоторых моделей отсутствует блок uv // например detector.model
 
 //жжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжж
-
-		// чтобы не обращаться в файл ( и дисковой системе? ) 
-		// по многу раз , для записи каждой строки ,
-		// мы будем записывать в неё список строк всего лишь один раз
 
 		static void AppendAllTextToObjFile ( string fileName, List<string> text )
 		{
 				using ( StreamWriter writer = File.AppendText ( fileName ) )
 				{
 				    foreach ( string line in text )
-				    writer.WriteLine ( line ) ; 
+				    writer.WriteLine ( line ); 
 				    text.Clear(); 
 				}
 		}
-/*
-		AppendAllTextToObjFile (	//	метод пишет
-		writePath	,								//	в файл
-		new List<string>()				//	список строк
-		{	
-		@""," + "		
-		});
-*/
 
 //жжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжж
 		static void Main ( )	
 		{
 //жжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжж
-				System.Threading.Thread.CurrentThread.CurrentCulture = new System.Globalization.CultureInfo ( "en-US" ) ;	//	чтобы в float числах - была точка вместо запятой
-				files = Directory.GetFiles ( Directory.GetCurrentDirectory ( ), "*.model", SearchOption.AllDirectories )	 ; // ищет файлы с расширением *.big в подпапках
+				System.Threading.Thread.CurrentThread.CurrentCulture = new System.Globalization.CultureInfo ( "en-US" );	//	чтобы в float числах - была точка вместо запятой
+				files = Directory.GetFiles ( Directory.GetCurrentDirectory ( ), "*.model", SearchOption.AllDirectories )	; // ищет файлы с расширением *.big в подпапках
 //жжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжж
 
 //			https://docs.microsoft.com/ru-ru/visualstudio/code-quality/ca1006-do-not-nest-generic-types-in-member-signatures?view=vs-2015
@@ -72,7 +52,7 @@ sealed class big2fbx
 				List<List<string>> subMeshFacesStr = new List<List<string>>(); 
 				// хранит наборы граней для каждой сабмеши , где [номер_сабмеши][номер_грани]
 
-				SortedSet<int>	vx_index_SubM = new SortedSet<int>()	;	//	содержит уникальные индексы вершин для одной сабмеши
+				     List<int>	vx_index_SubM = new List<int>()	;	//	содержит уникальные индексы вершин для одной сабмеши
 				List<List<int>> vx_index_List = new List<List<int>>();	//	исп~ся для выборки вершин, из общего списка, для каждой сабмеши
 
 				List<byte> vt_Hex_List = new List<byte>()	; List<string> vt_uv___str_List1	= new List<string>(); // uvs1
@@ -93,36 +73,36 @@ sealed class big2fbx
 
 				foreach ( var file in files )	//	для всех имён файлов из списка имён файлов
 				{
-						Console.WriteLine ( file ) ; // пишем имя файла в консоль
-						byte[] AllBytes = File.ReadAllBytes ( file ) ; //	читаем из файла все байты в массив
-						int files_name_counter = 1 ; // счётчик моделей и имён файлов для них
+						Console.WriteLine ( file ); // пишем имя файла в консоль
+						byte[] AllBytes = File.ReadAllBytes ( file ); //	читаем из файла все байты в массив
+						int files_name_counter = 1; // счётчик моделей и имён файлов для них
 
 //жжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжж
 
 						// приходится проходить по всем байтам в файле , потому что я не разбирался с ReadBytes
 
-						for ( i = 0 ; i < AllBytes.Length - 42 ; i++ ) // - 7 , потому что ищем до размер файла - 7 байт . ПОНЯТНО ? ( нет ) ( да ) // 22 // 40 // 42 // 44 
+						for ( i = 0; i < AllBytes.Length - 42; i++ ) // - 7 , потому что ищем до размер файла - 7 байт . ПОНЯТНО ? ( нет ) ( да ) // 22 // 40 // 42 // 44 
 						{
 								//жжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжж
 								// ИЩЕМ НАЧАЛО МОДЕЛИ 69 00 00 00 64 65 66 61 75 6C 74 00
 								//жжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжж
 
-								if ( AllBytes[ i + 0 ] == 0x69 & AllBytes[ i + 1 ] == 0x00 & AllBytes[ i + 2 ]  == 0x00 & AllBytes[ i + 3 ]  == 0x00 &
-										 AllBytes[ i + 4 ] == 0x64 & AllBytes[ i + 5 ] == 0x65 & AllBytes[ i + 6 ]  == 0x66 & AllBytes[ i + 7 ]  == 0x61 &
-										 AllBytes[ i + 8 ] == 0x75 & AllBytes[ i + 9 ] == 0x6C & AllBytes[ i + 10 ] == 0x74 & AllBytes[ i + 11 ] == 0x00 )
+								if ( AllBytes[i + 0] == 0x69 & AllBytes[i + 1] == 0x00 & AllBytes[i + 2] == 0x00 & AllBytes[i + 3] == 0x00 &
+										 AllBytes[i + 4] == 0x64 & AllBytes[i + 5] == 0x65 & AllBytes[i + 6] == 0x66 & AllBytes[i + 7] == 0x61 &
+										 AllBytes[i + 8] == 0x75 & AllBytes[i + 9] == 0x6C & AllBytes[i + 10] == 0x74 & AllBytes[i + 11] == 0x00 )
 								{
 										// если в модели нет блока вершин , то break // например pmarker.model 
-										if ( AllBytes[ i + 56 ] != 0x70 ) break; 
+										if ( AllBytes[i + 56] != 0x70 ) break; 
 
 								// 	читаем размер "блока" модели
-										byte[] ModelBlockSize = { AllBytes[ i + 12 + 0 ] , AllBytes[ i + 12 + 1 ] , AllBytes[ i + 12 + 2 ] , AllBytes[ i + 12 + 3 ] }; 
-										i_offset = BitConverter.ToInt32 ( ModelBlockSize , 0 ) ; 
-										i_begin = i ; i_end = i_begin + i_offset ; 
+										byte[] ModelBlockSize = { AllBytes[i + 12 + 0], AllBytes[i + 12 + 1], AllBytes[i + 12 + 2], AllBytes[i + 12 + 3] }; 
+										i_offset = BitConverter.ToInt32 ( ModelBlockSize , 0 ); 
+										i_begin = i; i_end = i_begin + i_offset; 
 
-										big_path = Path.GetDirectoryName ( file ) ; 
-										writePath = big_path + "/" + Path.GetFileNameWithoutExtension ( file ) + "_" + files_name_counter + ".fbx" ; //		.fbx		.obj
-										files_name_counter++ ; // нашли "вершины" - увеличили счётчик найденных моделей // это может стоять после всех "блоков" модели?
-										if ( File.Exists ( writePath ) ) File.Delete ( writePath ) ; 
+										big_path = Path.GetDirectoryName ( file ); 
+										writePath = big_path + "/" + Path.GetFileNameWithoutExtension ( file ) + "_" + files_name_counter + ".fbx"; //		.fbx		.obj
+										files_name_counter++; // нашли "вершины" - увеличили счётчик найденных моделей // это может стоять после всех "блоков" модели?
+										if ( File.Exists ( writePath ) ) File.Delete ( writePath ); 
 										//	если файл с таким именем существует , то удаляем его , чтобы потом создать новый с тем же именем
 								}
 
@@ -130,34 +110,34 @@ sealed class big2fbx
 								// ИЩЕМ ВЕРШИНЫ // если нашли строку "position" = 00 00 00 00 70 6F 73 69 74 69 6F 6E 
 								//жжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжж
 
-								if ( AllBytes[ i + 0 ] == 0x00 & AllBytes[ i + 1 ] == 0x00 & AllBytes[ i + 2 ]  == 0x00 & AllBytes[ i + 3 ]  == 0x00 &
-										 AllBytes[ i + 4 ] == 0x70 & AllBytes[ i + 5 ] == 0x6F & AllBytes[ i + 6 ]  == 0x73 & AllBytes[ i + 7 ]  == 0x69 &
-										 AllBytes[ i + 8 ] == 0x74 & AllBytes[ i + 9 ] == 0x69 & AllBytes[ i + 10 ] == 0x6F & AllBytes[ i + 11 ] == 0x6E )
+								if ( AllBytes[i + 0] == 0x00 & AllBytes[i + 1] == 0x00 & AllBytes[i + 2] == 0x00 & AllBytes[i + 3] == 0x00 &
+										 AllBytes[i + 4] == 0x70 & AllBytes[i + 5] == 0x6F & AllBytes[i + 6] == 0x73 & AllBytes[i + 7] == 0x69 &
+										 AllBytes[i + 8] == 0x74 & AllBytes[i + 9] == 0x69 & AllBytes[i + 10] == 0x6F & AllBytes[i + 11] == 0x6E )
 								{
 										// через 20 байт ( от начала "сигнатуры" ) записано количество вершин , считываем и запоминаем его
-										byte[] vSize = { AllBytes[ i + 20 + 0 ] , AllBytes[ i + 20 + 1 ] , AllBytes[ i + 20 + 2 ] , AllBytes[ i + 20 + 3 ] }; 
-										v_count = BitConverter.ToInt32 ( vSize , 0 ) ; // количество вершин
+										byte[] vSize = { AllBytes[i + 20 + 0], AllBytes[i + 20 + 1], AllBytes[i + 20 + 2], AllBytes[i + 20 + 3] }; 
+										v_count = BitConverter.ToInt32 ( vSize , 0 ); // количество вершин
 
 										// эта цифра указывает сколько ( байт*4 ) надо считать // например она равна 6 , значит нужно считать 6 пар типа [ 00 00 00 00 ]
-										// Console.WriteLine ( "Количество вершин = " + v_count + "\t" + "Количество байт = "   + v_count*3*4 + "\n" ) ; 
-										// ещё через 4 начинается список координат вершин [ i + 22 ]	// считываем все байты содержащие "значения" вершин в массив
+										// Console.WriteLine ( "Количество вершин = " + v_count + "\t" + "Количество байт = "   + v_count*3*4 + "\n" ); 
+										// ещё через 4 начинается список координат вершин [i + 22 ]	// считываем все байты содержащие "значения" вершин в массив
 
-										for ( int ii = 0 ; ii < v_count*3*4 ; ii++ ) // количество вершин * 3 координаты * 4 байта
-												vx_Hex_List.Add ( AllBytes[ i + 24 + ii ] ) ; // где то после 22 стоит не float значение !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+										for ( int ii = 0; ii < v_count*3*4; ii++ ) // количество вершин * 3 координаты * 4 байта
+												vx_Hex_List.Add ( AllBytes[i + 24 + ii] ); // где то после 22 стоит не float значение !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 								//--------------------------------------------------------------------------------------------------------------
 
-										for ( int ii = 0 ; ii < vx_Hex_List.Count ; ii += 12 ) // float занимает 4 байта и их по три координаты
+										for ( int ii = 0; ii < vx_Hex_List.Count; ii += 12 ) // float занимает 4 байта и их по три координаты
 										{	
-												byte[] fB1 = { vx_Hex_List[ ii + 0 ] , vx_Hex_List[ ii + 1 ] , vx_Hex_List[ ii + 2 ] , vx_Hex_List[ ii + 3 ] }; 
-												byte[] fB2 = { vx_Hex_List[ ii + 4 ] , vx_Hex_List[ ii + 5 ] , vx_Hex_List[ ii + 6 ] , vx_Hex_List[ ii + 7 ] }; 
-												byte[] fB3 = { vx_Hex_List[ ii + 8 ] , vx_Hex_List[ ii + 9 ] , vx_Hex_List[ ii + 10 ] , vx_Hex_List[ ii + 11 ] }; 
+												byte[] fB1 = { vx_Hex_List[ii + 0], vx_Hex_List[ii + 1], vx_Hex_List[ii + 2], vx_Hex_List[ii + 3] }; 
+												byte[] fB2 = { vx_Hex_List[ii + 4], vx_Hex_List[ii + 5], vx_Hex_List[ii + 6], vx_Hex_List[ii + 7] }; 
+												byte[] fB3 = { vx_Hex_List[ii + 8], vx_Hex_List[ii + 9], vx_Hex_List[ii + 10], vx_Hex_List[ii + 11] }; 
 
-												float v1 = BitConverter.ToSingle ( fB1 , 0 ) ; 
-												float v2 = BitConverter.ToSingle ( fB2 , 0 ) ; 
-												float v3 = BitConverter.ToSingle ( fB3 , 0 ) ; 
+												float v1 = BitConverter.ToSingle ( fB1 , 0 ); 
+												float v2 = BitConverter.ToSingle ( fB2 , 0 ); 
+												float v3 = BitConverter.ToSingle ( fB3 , 0 ); 
 
-												vx_Str_List.Add ( v1 + "	,	" + v2 + "	,	" + v3 ) ; 
+												vx_Str_List.Add ( v1 + "	,	" + v2 + "	,	" + v3 ); 
 										}
 										
 										vx_Hex_List.Clear();
@@ -167,26 +147,26 @@ sealed class big2fbx
 								// ИЩЕМ Vn ( нормали )
 								//жжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжж
 
-								if ( AllBytes[ i + 0 ] == 0x6E & AllBytes[ i + 1 ] == 0x6F & AllBytes[ i + 2 ]  == 0x72 & AllBytes[ i + 3 ]  == 0x6D &
-										 AllBytes[ i + 4 ] == 0x61 & AllBytes[ i + 5 ] == 0x6C & AllBytes[ i + 6 ]  == 0x73 & AllBytes[ i + 7 ]  == 0x00 )
+								if ( AllBytes[i + 0] == 0x6E & AllBytes[i + 1] == 0x6F & AllBytes[i + 2] == 0x72 & AllBytes[i + 3] == 0x6D &
+										 AllBytes[i + 4] == 0x61 & AllBytes[i + 5] == 0x6C & AllBytes[i + 6] == 0x73 & AllBytes[i + 7] == 0x00 )
 								{
-										byte[] vnSize = { AllBytes[ i + 16 + 0 ] , AllBytes[ i + 16 + 1 ] , AllBytes[ i + 16 + 2 ] , AllBytes[ i + 16 + 3 ] }; 
-										int vn_count = BitConverter.ToInt32 ( vnSize , 0 ) ; 
+										byte[] vnSize = { AllBytes[i + 16 + 0], AllBytes[i + 16 + 1], AllBytes[i + 16 + 2], AllBytes[i + 16 + 3] }; 
+										int vn_count = BitConverter.ToInt32 ( vnSize , 0 ); 
 
-										for ( int ii = 0 ; ii < vn_count*3*4 ; ii++ )
-										vn_Hex_List.Add ( AllBytes[ i + 20 + ii ] ) ; 
+										for ( int ii = 0; ii < vn_count*3*4; ii++ )
+										vn_Hex_List.Add ( AllBytes[i + 20 + ii] ); 
 
-										for ( int ii = 0 ; ii < vn_Hex_List.Count ; ii += 12 )
+										for ( int ii = 0; ii < vn_Hex_List.Count; ii += 12 )
 										{
-												byte[] fB1 = { vn_Hex_List[ ii + 0 ] , vn_Hex_List[ ii + 1 ] , vn_Hex_List[ ii + 2 ] , vn_Hex_List[ ii + 3 ] }; 
-												byte[] fB2 = { vn_Hex_List[ ii + 4 ] , vn_Hex_List[ ii + 5 ] , vn_Hex_List[ ii + 6 ] , vn_Hex_List[ ii + 7 ] }; 
-												byte[] fB3 = { vn_Hex_List[ ii + 8 ] , vn_Hex_List[ ii + 9 ] , vn_Hex_List[ ii + 10 ] , vn_Hex_List[ ii + 11 ] }; 
+												byte[] fB1 = { vn_Hex_List[ii + 0], vn_Hex_List[ii + 1], vn_Hex_List[ii + 2], vn_Hex_List[ii + 3] }; 
+												byte[] fB2 = { vn_Hex_List[ii + 4], vn_Hex_List[ii + 5], vn_Hex_List[ii + 6], vn_Hex_List[ii + 7] }; 
+												byte[] fB3 = { vn_Hex_List[ii + 8], vn_Hex_List[ii + 9], vn_Hex_List[ii + 10], vn_Hex_List[ii + 11] }; 
 
-												float vn1 = BitConverter.ToSingle ( fB1 , 0 ) ; 
-												float vn2 = BitConverter.ToSingle ( fB2 , 0 ) ; 
-												float vn3 = BitConverter.ToSingle ( fB3 , 0 ) ; 
+												float vn1 = BitConverter.ToSingle ( fB1 , 0 ); 
+												float vn2 = BitConverter.ToSingle ( fB2 , 0 ); 
+												float vn3 = BitConverter.ToSingle ( fB3 , 0 ); 
 
-												vn_Str_List.Add ( vn1 + "	,	" + vn2 + "	,	" + vn3 ) ; 
+												vn_Str_List.Add ( vn1 + "	,	" + vn2 + "	,	" + vn3 ); 
 										}
 										vn_Hex_List.Clear();
 								}
@@ -195,72 +175,72 @@ sealed class big2fbx
 								// ИЩЕМ ГРАНИ FACES ( prims ) // если нашли строку "prims..." = 70 72 69 6D 73 ( 00 00 00 )
 								//жжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжж
 
-								if ( AllBytes[ i + 0 ] == 0x70 & AllBytes[ i + 1 ] == 0x72 & AllBytes[ i + 2 ] == 0x69 
-								   & AllBytes[ i + 3 ] == 0x6D & AllBytes[ i + 4 ] == 0x73 )
+								if ( AllBytes[i + 0] == 0x70 & AllBytes[i + 1] == 0x72 & AllBytes[i + 2] == 0x69 
+								   & AllBytes[i + 3] == 0x6D & AllBytes[i + 4] == 0x73 )
 								{
-										int id = i + 24 ; // это было очень сложно 
-										int offset = 0 ; // 4 8 12 16 18 40
-										fs_count = AllBytes[ i + 16 ] ; // читаем количество "саб"-мешей
+										int id = i + 24; // это было очень сложно 
+										int offset = 0; // 4 8 12 16 18 40
+										fs_count = AllBytes[i + 16]; // читаем количество "саб"-мешей
 
-/*sf*/							for ( fi = 0 ; fi < fs_count ; fi++ )	// повторяем необходимое кол-во раз равное кол-ву саб-мешей
+/*sf*/							for ( fi = 0; fi < fs_count; fi++ )	// повторяем необходимое кол-во раз равное кол-ву саб-мешей
 										{
 												byte[] f_count_four_bytes_int = { // читаем количество строчек f в файле obj // c 24 по 27
 												AllBytes[id+0+offset] , AllBytes[id+1+offset] , AllBytes[id+2+offset] , AllBytes[id+3+offset] }; 
-												int f_count = BitConverter.ToInt32 ( f_count_four_bytes_int , 0 ) ; // количество строк
+												int f_count = BitConverter.ToInt32 ( f_count_four_bytes_int , 0 ); // количество строк
 
 												byte[] f_count_four_bytes_int_size = { // читаем количество байт , которых нужно умножить на два // c 28 по 31
 												AllBytes[id+4+0+offset] , AllBytes[id+4+1+offset] , AllBytes[id+4+2+offset] , AllBytes[id+4+3+offset] }; 
-												int f_size_count = BitConverter.ToInt32 ( f_count_four_bytes_int_size , 0 ) ; // 
+												int f_size_count = BitConverter.ToInt32 ( f_count_four_bytes_int_size , 0 ); // 
 
 										//	эта цифра указывает сколько байт*2 надо считать // например она равна 6 , значит нужно считать 6 пар типа [ 00 00 ]
-										//	Console.WriteLine ( "Количество граней = " + f_count/3 + "\t" + "Количество байт = "   + f_count*2 + "\n" ) ; 
+										//	Console.WriteLine ( "Количество граней = " + f_count/3 + "\t" + "Количество байт = "   + f_count*2 + "\n" ); 
 
 										//--------------------------------------------------------------------------------------------------------------
-												for ( int ii = 0 ; ii < f_size_count*2 ; ii++ ) 
-														f_Hex_List.Add ( AllBytes[ id + 8 + ii + offset ] ) ; 
+												for ( int ii = 0; ii < f_size_count*2; ii++ ) 
+														f_Hex_List.Add ( AllBytes[id + 8 + ii + offset] ); 
 										//--------------------------------------------------------------------------------------------------------------
 
 										//	размер "промежутков" с какой то инфой между блока граней 
-												offset = offset + 8 + f_size_count*2 + 44 ; 
-												if ( f_count % 2 != 0 ) offset = offset + 2 ; 
+												offset = offset + 8 + f_size_count*2 + 44; 
+												if ( f_count % 2 != 0 ) offset = offset + 2; 
 
 										//--------------------------------------------------------------------------------------------------------------
 
-												for ( int iii = 0 ; iii < f_Hex_List.Count ; iii += 6 )
+												for ( int iii = 0; iii < f_Hex_List.Count; iii += 6 )
 												{
-														byte[] twoBytes1 = { f_Hex_List[ iii + 0 ] , f_Hex_List[ iii + 1 ] }; // 00 00 
-														byte[] twoBytes2 = { f_Hex_List[ iii + 2 ] , f_Hex_List[ iii + 3 ] }; // 01 00
-														byte[] twoBytes3 = { f_Hex_List[ iii + 4 ] , f_Hex_List[ iii + 5 ] }; // 02 00
+														byte[] twoBytes1 = { f_Hex_List[iii + 0], f_Hex_List[iii + 1] }; // 00 00 
+														byte[] twoBytes2 = { f_Hex_List[iii + 2], f_Hex_List[iii + 3] }; // 01 00
+														byte[] twoBytes3 = { f_Hex_List[iii + 4], f_Hex_List[iii + 5] }; // 02 00
 
 												//	convert vertex index из числа в строку
 
-														Int16 vi1		=	( Int16 )BitConverter.ToInt16 ( twoBytes1 , 0 ) ; // 0
-														Int16 vi2		=	( Int16 )BitConverter.ToInt16 ( twoBytes2 , 0 ) ; // 1
-														Int16 vi3_	=	( Int16 )BitConverter.ToInt16 ( twoBytes3 , 0 ) ; // 1
-														Int32 vi3		=	( ( Int16 )BitConverter.ToInt16 ( twoBytes3 , 0 ) + 1 ) / ( -1 ) ; // 2 или -3
+														Int16 vi1		=	( Int16 )BitConverter.ToInt16 ( twoBytes1 , 0 ); // 0
+														Int16 vi2		=	( Int16 )BitConverter.ToInt16 ( twoBytes2 , 0 ); // 1
+														Int16 vi3_	=	( Int16 )BitConverter.ToInt16 ( twoBytes3 , 0 ); // 1
+														Int32 vi3		=	( ( Int16 )BitConverter.ToInt16 ( twoBytes3 , 0 ) + 1 ) / ( -1 ); // 2 или -3
 
-												//	SortedSet<int> хранит "уникальные" vertex index из граней сабмеша
+												//	List<int> хранит "уникальные" vertex index из граней сабмеша
 												//	чтобы потом выбирать вершины из общего списка для каждой сабмеши
 
-													//SortedSet<int>.Add(int);
-														vx_index_SubM.Add(vi1);	
-														vx_index_SubM.Add(vi2);	
-														vx_index_SubM.Add(vi3_);
+												//	List<int>.Add(int);
+														if (!vx_index_SubM.Contains(vi1 )) vx_index_SubM.Add(vi1);	
+														if (!vx_index_SubM.Contains(vi2 )) vx_index_SubM.Add(vi2);
+														if (!vx_index_SubM.Contains(vi3_)) vx_index_SubM.Add(vi3_);		
 
 												//	создаём строки вида f v1 v2 ((vi3 + 1)/( -1 ))
-														string faces = String.Format ( "{0}, {1}, {2}" , vi1 , vi2 , vi3 ) ;
+														string faces = String.Format ( "{0}, {1}, {2}" , vi1 , vi2 , vi3 );
 
-												//	if ( iii != f_Hex_List.Count - 6 ) faces = faces + "," ;
+												//	if ( iii != f_Hex_List.Count - 6 ) faces = faces + ",";
 												//	это не работает , да и запятая не нужна, потому что отрицательное значение индекса вершины , говорит об окончании
 
-													//List<string>.Add(String) ;
-														f_Str_List.Add ( faces ) ; // добавляем строку вида 1 2 -2 в список граней
+													//List<string>.Add(String);
+														f_Str_List.Add ( faces ); // добавляем строку вида 1 2 -2 в список граней
 
 //\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 
-if (!UniqVertexIndexList.Contains(vi1 )) UniqVertexIndexList.Add (vi1 ) ; 
-if (!UniqVertexIndexList.Contains(vi2 )) UniqVertexIndexList.Add (vi2 ) ; 
-if (!UniqVertexIndexList.Contains(vi3_)) UniqVertexIndexList.Add (vi3_) ; 
+if (!UniqVertexIndexList.Contains(vi1 )) UniqVertexIndexList.Add (vi1 ); 
+if (!UniqVertexIndexList.Contains(vi2 )) UniqVertexIndexList.Add (vi2 ); 
+if (!UniqVertexIndexList.Contains(vi3_)) UniqVertexIndexList.Add (vi3_); 
 
 VertexIndexList.Add(vi1 );	
 VertexIndexList.Add(vi2 );	
@@ -278,10 +258,12 @@ List_VertexIndexList.Add(VertexIndexList.ToList());
 
 										//--------------------------------------------------------------------------------------------------------------
 
-												subMeshFacesStr.Add ( f_Str_List.ToList() ) ; // добавляем строки в subMeshFacesStr
+											//List<List<string>>.Add( List<string>.ToList() )
+												subMeshFacesStr.Add ( f_Str_List.ToList() ); // добавляем строки в subMeshFacesStr
 												f_Str_List.Clear(); // очищаем для следущей сабмеши
 
-												vx_index_List.Add ( vx_index_SubM.ToList() ) ;
+											//List<List<int>>.Add(List<int>.ToList());
+												vx_index_List.Add ( vx_index_SubM.ToList() );
 												vx_index_SubM.Clear(); 
 												f_Hex_List.Clear(); 
 
@@ -289,58 +271,29 @@ List_VertexIndexList.Add(VertexIndexList.ToList());
 
 	int[][] NewVertexIndex = new int[fs_count][];
 
-	for (int iiii = 0 ; iiii < List_VertexIndexList.Count; iiii++ )
+	for (int iiii = 0; iiii < List_VertexIndexList.Count; iiii++ )
 	{	
 			NewVertexIndex[iiii] = List_VertexIndexList[iiii].ToArray();	//	инициализируем значениями
 	}
 
-	for (int i_ = 0 ; i_ < List_VertexIndexList.Count ; i_++)										{
-		for (int j = 0 ; j < List_UniqVertexIndexList.Count ; j++)								{
-			for (int k = 0 ; k < List_VertexIndexList[i_].Count ; k++)							{
-				for (int l = 0 ; l < List_UniqVertexIndexList[j].Count ; l++)					{
-					if (List_VertexIndexList[i_][k] == List_UniqVertexIndexList[j][l]) 	{
-						NewVertexIndex[i_][k] = l ; break; 												}	}	}	}	}
+	for (int i_ = 0; i_ < List_VertexIndexList.Count; i_++)										{
+		for (int j = 0; j < List_UniqVertexIndexList.Count; j++)								{
+			for (int k = 0; k < List_VertexIndexList[i_].Count; k++)							{
+				for (int l = 0; l < List_UniqVertexIndexList[j].Count; l++)					{
+					if (List_VertexIndexList[i_][k] == List_UniqVertexIndexList[j][l]){
+						NewVertexIndex[i_][k] = l; break; 											}	}	}	}	}
 
 string faceIndexString="";
 
-for (int i__ = 0 ; i__ < fs_count ; i__++)
-{
-		for (int j = 0 , j2 = 1 ; j < NewVertexIndex[i__].Length ; j++, j2++)
-		{
+for (int i__ = 0; i__ < fs_count; i__++) {
+		for (int j = 0 , j2 = 1; j < NewVertexIndex[i__].Length; j++, j2++)	{
 			if ( j2 % 3 == 0 ) NewVertexIndex[i__][j] = (NewVertexIndex[i__][j] + 1 ) / ( -1 );
 			var stringsArray = NewVertexIndex[i__].Select(ind => ind.ToString()).ToArray();
 			faceIndexString = string.Join(",", stringsArray);
-			
-		//Console.Write( NewVertexIndex[i__][j] + " " );
-		}	
-		faceIndexString_List.Add(faceIndexString);
+}			faceIndexString_List.Add(faceIndexString);
 }
+
 								}	// if // ИЩЕМ ГРАНИ FACES ( prims )
-
-
-//жжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжж
-//жжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжж
-//жжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжж
-
-// COLOR
-
-/*
-		LayerElementColor: 0 
-		{
-			Version: 101
-			Name: "Col"
-			MappingInformationType: "ByVertex"
-			ReferenceInformationType: "IndexToDirect"
-
-			Colors: *12 {
-				a: 0.996078431606293,0.996078431606293,0.996078431606293,1,1,1,1,1,0.992156863212585,0.992156863212585,0.992156863212585,1
-			}
-
-			ColorIndex: *4616 {
-				a: ...
-			}
-		}
-*/
 
 //жжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжж
 //жжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжж
@@ -350,53 +303,53 @@ for (int i__ = 0 ; i__ < fs_count ; i__++)
 								// ТЕКСТУРНЫЕ  КООРДИНАТЫ // uvs. // 75 76 73 00 00 00 00 00
 								//жжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжж
 
-								if ( AllBytes[ i + 0 ] == 0x75 & AllBytes[ i + 1 ] == 0x76 & AllBytes[ i + 2 ]  == 0x73 & AllBytes[ i + 3 ]  == 0x00 ) 
+								if ( AllBytes[i + 0] == 0x75 & AllBytes[i + 1] == 0x76 & AllBytes[i + 2] == 0x73 & AllBytes[i + 3] == 0x00 ) 
 								{
-										uvs_flag = true ; 
+										uvs_flag = true; 
 
-										byte[] vtSize = { AllBytes[ i + 20 + 0 ] , AllBytes[ i + 20 + 1 ] , AllBytes[ i + 20 + 2 ] , AllBytes[ i + 20 + 3 ] }; 
-										int vt_uv = BitConverter.ToInt32 ( vtSize , 0 ) ; 
+										byte[] vtSize = { AllBytes[i + 20 + 0], AllBytes[i + 20 + 1], AllBytes[i + 20 + 2], AllBytes[i + 20 + 3] }; 
+										int vt_uv = BitConverter.ToInt32 ( vtSize , 0 ); 
 
-										for ( int ii = 0 ; ii < vt_uv*2*4 ; ii++ ) // количество_вершин * 3 координаты * 4 байта
-													vt_Hex_List.Add ( AllBytes[ i + 24 + ii ] ) ; // где то после 22 стоит не float значение !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+										for ( int ii = 0; ii < vt_uv*2*4; ii++ ) // количество_вершин * 3 координаты * 4 байта
+													vt_Hex_List.Add ( AllBytes[i + 24 + ii] ); // где то после 22 стоит не float значение !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-										for ( int ii = 0 ; ii < vt_Hex_List.Count ; ii += 8 )
+										for ( int ii = 0; ii < vt_Hex_List.Count; ii += 8 )
 										{
-												byte[] fB1 = { vt_Hex_List[ ii + 0 ] , vt_Hex_List[ ii + 1 ] , vt_Hex_List[ ii + 2 ] , vt_Hex_List[ ii + 3 ] }; 
-												byte[] fB2 = { vt_Hex_List[ ii + 4 ] , vt_Hex_List[ ii + 5 ] , vt_Hex_List[ ii + 6 ] , vt_Hex_List[ ii + 7 ] }; 
+												byte[] fB1 = { vt_Hex_List[ii + 0], vt_Hex_List[ii + 1], vt_Hex_List[ii + 2], vt_Hex_List[ii + 3] }; 
+												byte[] fB2 = { vt_Hex_List[ii + 4], vt_Hex_List[ii + 5], vt_Hex_List[ii + 6], vt_Hex_List[ii + 7] }; 
 
-												float vu = BitConverter.ToSingle ( fB1 , 0 ) ; 
-												float vv = ( -1 )*BitConverter.ToSingle ( fB2 , 0 ) ; 
+												float vu = BitConverter.ToSingle ( fB1 , 0 ); 
+												float vv = ( -1 )*BitConverter.ToSingle ( fB2 , 0 ); 
 
-												vt_uv___str_List1.Add ( vu + "	,	" + vv ) ; 
+												vt_uv___str_List1.Add ( vu + "	,	" + vv ); 
 										}
 
 										vt_Hex_List.Clear();
-								//	if (AllBytes[ i + 0 ]найдено второе увс) то
+								//	if (AllBytes[i + 0 ]найдено второе увс) то
 								}
 
 								//жжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжж
 								// uvs index , индексы текстурных координат , "блок" textures , 00 00 FF FF 74 65 78 74 75 72 65 73
 								//жжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжж
 
-								if ( AllBytes[ i + 0 ] == 0x00 & AllBytes[ i + 1 ] == 0x00 & AllBytes[ i + 2 ]  == 0xFF & AllBytes[ i + 3 ]  == 0xFF &	//	00 00 FF FF
-										 AllBytes[ i + 4 ] == 0x74 & AllBytes[ i + 5 ] == 0x65 & AllBytes[ i + 6 ]  == 0x78 & AllBytes[ i + 7 ]  == 0x74 &	//	74 65 78 74
-										 AllBytes[ i + 8 ] == 0x75 & AllBytes[ i + 9 ] == 0x72 & AllBytes[ i + 10 ] == 0x65 & AllBytes[ i + 11 ] == 0x73 )	//	75 72 65 73
+								if ( AllBytes[i + 0] == 0x00 & AllBytes[i + 1] == 0x00 & AllBytes[i + 2] == 0xFF & AllBytes[i + 3] == 0xFF &	//	00 00 FF FF
+										 AllBytes[i + 4] == 0x74 & AllBytes[i + 5] == 0x65 & AllBytes[i + 6] == 0x78 & AllBytes[i + 7] == 0x74 &	//	74 65 78 74
+										 AllBytes[i + 8] == 0x75 & AllBytes[i + 9] == 0x72 & AllBytes[i + 10] == 0x65 & AllBytes[i + 11] == 0x73 )	//	75 72 65 73
 								{
-										byte[] uvSize = { AllBytes[ i + 20 + 0 ] , AllBytes[ i + 20 + 1 ] , AllBytes[ i + 20 + 2 ] , AllBytes[ i + 20 + 3 ] }; 
-										int uvCount = BitConverter.ToInt32 ( uvSize , 0 ) ; // получили количество индексов
+										byte[] uvSize = { AllBytes[i + 20 + 0], AllBytes[i + 20 + 1], AllBytes[i + 20 + 2], AllBytes[i + 20 + 3] }; 
+										int uvCount = BitConverter.ToInt32 ( uvSize , 0 ); // получили количество индексов
 
-										for ( int ii = 0 ; ii < uvCount*2 ; ii++ )	//	одно число занимает два байта	//	прочитали если индексов 4 то 8 байт
-													uv_Hex_List.Add ( AllBytes[ i + 24 + ii ] ) ;	//	добавляем индексы в список
+										for ( int ii = 0; ii < uvCount*2; ii++ )	//	одно число занимает два байта	//	прочитали если индексов 4 то 8 байт
+													uv_Hex_List.Add ( AllBytes[i + 24 + ii] );	//	добавляем индексы в список
 
-										for ( int iii = 0 ; iii < uv_Hex_List.Count ; iii += 2 )	//	добавляем индексы в виде строк в файл
+										for ( int iii = 0; iii < uv_Hex_List.Count; iii += 2 )	//	добавляем индексы в виде строк в файл
 										{
-												byte[] twoBytes1 = { uv_Hex_List[ iii + 0 ] , uv_Hex_List[ iii + 1 ] }; // 00 00  
-												Int16 st1 = ( Int16 )BitConverter.ToInt16 ( twoBytes1 , 0 ) ; // 0
+												byte[] twoBytes1 = { uv_Hex_List[iii + 0], uv_Hex_List[iii + 1] }; // 00 00  
+												Int16 st1 = ( Int16 )BitConverter.ToInt16 ( twoBytes1 , 0 ); // 0
 
-												string uvs = String.Format ( "{0}" , st1 ) ; 
-												if ( iii != uv_Hex_List.Count-2 ) uvs = uvs + "," ; 
-												vt_uv_i_str_List.Add ( uvs ) ; // vt_uv_i_str_List.Add ( st1 + "," ) ; 
+												string uvs = String.Format ( "{0}" , st1 ); 
+												if ( iii != uv_Hex_List.Count-2 ) uvs = uvs + ","; 
+												vt_uv_i_str_List.Add ( uvs ); // vt_uv_i_str_List.Add ( st1 + "," ); 
 										}
 
 										uv_Hex_List.Clear();	//	очищаем байтовый-список uvs index блока, которые уже добавлены в виде строк
@@ -417,21 +370,13 @@ for (int i__ = 0 ; i__ < fs_count ; i__++)
 
 AppendAllTextToObjFile ( writePath , new List<string> ( ) {
 
-//@" ; " + file // <source_data>file:///C:/file%20name.big</source_data> , 
+//@"; " + file // <source_data>file:///C:/file%20name.big</source_data> , 
 
 @"
-; ==================================================== 
-; FBX 7.3.0 project file
-; Copyright ( C ) 1997-2010 Autodesk Inc. and/or its licensors.
-; All rights reserved.
-; ==================================================== 
-
 FBXHeaderExtension:  {
 	FBXHeaderVersion: 1003
 	FBXVersion: 7300
 }
-
-; ==================================================== 
 
 GlobalSettings:  {
 	Version: 1000
@@ -502,9 +447,9 @@ Objects:
 /**//**//**//**//**//**//**//**//**//**//**//**//**//**//**//**//**//**//**//**//**//**//**//**//**//**/
 /**//**//**//**//**//**//**//**//**//**//**//**//**//**//**//**//**//**//**//**//**//**//**//**//**//**/
 
-int index = 0 ;	// увеличивает номера блоков	//	делая их уникальными	//	для секции Connections
+int index = 0;	// увеличивает номера блоков	//	делая их уникальными	//	для секции Connections
 
-for ( int smi = 0 ; smi < fs_count ; smi++ )	//	для каждой сабмеши добавляем в файл отдельные блоки Geometry , Normal , UV , Material 
+for ( int smi = 0; smi < fs_count; smi++ )	//	для каждой сабмеши добавляем в файл отдельные блоки Geometry , Normal , UV , Material 
 {
 
 AppendAllTextToObjFile ( writePath , new List<string> ( ) {
@@ -524,7 +469,7 @@ AppendAllTextToObjFile ( writePath , new List<string> ( ) {
 a: "
 });
 
-for ( int w = 0 ; w < vx_index_List[smi].Count ; w++ )
+for ( int w = 0; w < vx_index_List[smi].Count; w++ )
 {
 		if (w != vx_index_List[smi].Count-1 )	
 				vx_Str_List[vx_index_List[smi][w]] = 
@@ -549,10 +494,13 @@ AppendAllTextToObjFile ( writePath , new List<string> ( ) {
 a: "
 });
 
-AppendAllTextToObjFile ( writePath , new List<string> ( ) 
-{
-		@"	" + faceIndexString_List[smi]
-});
+//for ( int w = 0; w < subMeshFacesStr[smi].Count; w++ ){
+		AppendAllTextToObjFile ( writePath , new List<string> ( ) 
+		{
+				//@"	" + subMeshFacesStr[smi][w]
+				@"	" + faceIndexString_List[smi]
+		});
+//}
 
 AppendAllTextToObjFile ( writePath , new List<string> ( ) {@"	} "});
 
@@ -582,7 +530,7 @@ AppendAllTextToObjFile ( writePath , new List<string> ( ) {
 	a: "
 });
 
-for ( int w = 0 ; w < vx_index_List[smi].Count ; w++ )
+for ( int w = 0; w < vx_index_List[smi].Count; w++ )
 {
 		if (w != vx_index_List[smi].Count-1 )	
 				vn_Str_List[vx_index_List[smi][w]] = 
@@ -622,7 +570,7 @@ AppendAllTextToObjFile ( writePath , new List<string> ( ) {
 		a: "
 });
 
-for ( int w = 0 ; w < vx_index_List[smi].Count ; w++ )
+for ( int w = 0; w < vx_index_List[smi].Count; w++ )
 {
 		if (w != vx_index_List[smi].Count-1 )	
 				vt_uv___str_List1[vx_index_List[smi][w]] = 
@@ -679,7 +627,7 @@ AppendAllTextToObjFile ( writePath , new List<string> ( ) {
 @"	LayerElementMaterial: 0 	{
 		Version: 101
 		Name: """"
-		MappingInformationType: ""ByVertex"" ; AllSame
+		MappingInformationType: ""ByVertex""; AllSame
 		ReferenceInformationType: ""IndexToDirect""
 		Materials: *1 {
 			a: 0
@@ -718,7 +666,7 @@ AppendAllTextToObjFile ( writePath , new List<string> ( ) {
 "
 ,
 
-@" ; ----------------------------------------------------
+@"; ----------------------------------------------------
 
 	Model: " + (++index) + @", ""Model::SM"", ""Mesh"" {
 		Version: 232
@@ -781,19 +729,19 @@ AppendAllTextToObjFile ( writePath , new List<string> ( ) {
 
 AppendAllTextToObjFile ( writePath , new List<string> ( ) {
 
-@"} ; закрывает Objects
+@"}; закрывает Objects
 
 ; ====================================================
 ; Object connections
 ; -----------------------------------------------------
 
-Connections: ; " + fs_count + @"
+Connections:; " + fs_count + @"
 {"
 }); 
 
 //*****************************************************************************
 
-for ( int coni = 0 , coniplus = 0 ; coni < fs_count ; coni++ , coniplus += 4 )
+for ( int coni = 0 , coniplus = 0; coni < fs_count; coni++ , coniplus += 4 )
 {
 		AppendAllTextToObjFile ( writePath , new List<string> ( ) {
 

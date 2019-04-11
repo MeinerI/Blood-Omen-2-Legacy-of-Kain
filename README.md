@@ -1,6 +1,6 @@
 
 
-Direct-X File Format -_-
+Direct-X File Format ?
 
 if ( Vertices           == UVIndex ) MappingInformationType = "ByVertex"  ;
 

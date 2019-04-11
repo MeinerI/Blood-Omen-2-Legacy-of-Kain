@@ -1,3 +1,5 @@
+//	int qq = 0 ; foreach ( var q in uvi_int ) { Console.WriteLine ( qq + " " + q ) ; qq++ ; }
+
 //жжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжж
 	using System;using System.IO;using System.Linq;using System.Text;using System.Collections;using System.Collections.Generic;
 //жжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжж
@@ -12,9 +14,10 @@ sealed class big2obj
 		static string writePath ; // хранит путь к файлу *[i].obj
 		static int i = 0 ; // индекс в массиве байт всего файла
 		static int uv_index_count = 0; // чтобы UVIndex был виден в блоке LayerElementUV
-		static int st1 ;
+	//static int st1 ;
 
-		// это для того , чтобы расчитать конец блока модели и записать в файл теги идущие после её геометрии
+		// это для того , чтобы расчитать конец блока модели 
+		// и записать в файл теги идущие после её геометрии
 		static int   i_begin = 0 ; // индекс начала блока модели
 		static int   i_offset = 0 ; // индекс смещения блока модели
 		static int   i_end = 0 ; // индекс конца блока модели
@@ -59,7 +62,9 @@ sealed class big2obj
 
 //жжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжж
 
-						for ( i = 0 ; i < array1d.Length - 42 ; i++ ) // - 7 , потому что ищем до размер файла - 7 байт . ПОНЯТНО ? (нет) (да) // 22 // 40 // 42 // 44 
+						// - 7 , потому что ищем до размер файла - 7 байт . ПОНЯТНО ? (нет) (да) // 22 // 40 // 42 // 44 
+
+						for ( i = 0 ; i < array1d.Length - 42 ; i++ ) 
 						{
 								//жжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжж
 								// ИЩЕМ НАЧАЛО МОДЕЛИ 69 00 00 00 64 65 66 61 75 6C 74 00
@@ -77,7 +82,7 @@ sealed class big2obj
 
 										big_path = Path.GetDirectoryName(file);
 										writePath = big_path + "/" + Path.GetFileNameWithoutExtension(file) + "___" + files_name_counter + ".obj" ;
-										files_name_counter++ ; // нашли "вершины" - увеличили счётчик файденных моделей // это может стоять после всех "блоков" модели?
+										files_name_counter++ ; // нашли "вершины" - увеличили счётчик файденных моделей
 										if (File.Exists(writePath)) File.Delete(writePath);
 								}
 
@@ -94,7 +99,7 @@ sealed class big2obj
 										v_count = BitConverter.ToInt32(v_count_four_bytes_int , 0) ;
 
 										for ( int ii = 0 ; ii < v_count*3*4 ; ii++ ) // количество вершин * 3 координаты * 4 байта
-												vertexs_count.Add ( array1d[i+24+ii] ) ; // где то после 22 стоит не float значение !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+												vertexs_count.Add ( array1d[i+24+ii] ) ; // где то после 22 стоит не float значение !!!!!!!!!!!!!!!!!!!!!
 
 								//	vertex_str.Add("# " + v_count + " vertices ");
 
@@ -108,7 +113,7 @@ sealed class big2obj
 												float y = BitConverter.ToSingle(fourBytes2 , 0) ;
 												float z = BitConverter.ToSingle(fourBytes3 , 0) ;
 
-												vertex_str.Add ( "v " + x + " " + y + " " + z ) ; // "v " + y + " " + z + " " + x
+												vertex_str.Add ( "v " + y + " " + z + " " + x ) ; // "v " + y + " " + z + " " + x
 										}
 												vertexs_count.Clear() ;
 									}
@@ -153,7 +158,7 @@ sealed class big2obj
 										vt_uv = BitConverter.ToInt32(vt_count_four_bytes_int , 0) ;
 
 										for (int ii = 0 ; ii < vt_uv*2*4 ; ii++ ) // количество вершин * 3 координаты * 4 байта
-													vt_count.Add ( array1d[i+24+ii] ) ; // где то после 22 стоит не float значение !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+													vt_count.Add ( array1d[i+24+ii] ) ; // где то после 22 стоит не float значение !!!!!!!!!!!!!!!!!!!!!!!!
 
 								//	vt_str.Add("\n# " + vt_uv + " vt" + " = " + "UVSET " + array1d[i+16]);
 								//	vt_str.Add("# offset = " + i );
@@ -163,8 +168,7 @@ sealed class big2obj
 												byte[] fourBytes1 = { vt_count[ii+0] , vt_count[ii+1] , vt_count[ii+2 ] , vt_count[ii+3 ] } ; 
 												byte[] fourBytes2 = { vt_count[ii+4] , vt_count[ii+5] , vt_count[ii+6 ] , vt_count[ii+7 ] } ; 
 												float vu = BitConverter.ToSingle(fourBytes1 , 0) ;
-												float vv = BitConverter.ToSingle(fourBytes2 , 0) ;
-
+												float vv = ( -1 )*BitConverter.ToSingle(fourBytes2 , 0) ;
 												vt_str.Add( "vt " + vu + " " + vv ) ; // записываем строку в файл *.obj
 										}
 												vt_count.Clear() ;
@@ -176,20 +180,19 @@ sealed class big2obj
 
 								if ( array1d[i+0] == 0x70 & array1d[i+1] == 0x72 & array1d[i+2] == 0x69 & array1d[i+3] == 0x6D & array1d[i+4] == 0x73 )
 								{
-
 										// читаем размер блока // не знаю зачем	//	пригодилось	//	для расчёта смещения блока textures , содержащего UVIndex
 										byte[] f_size_four_bytes_int = { array1d[i+8+0] , array1d[i+8+1] , array1d[i+8+2] , array1d[i+8+3] } ; 
 										int fb_size = BitConverter.ToInt32 ( f_size_four_bytes_int , 0 ) ;
 
-								//--------------------------------------------------------------------------------------------------------------
-
+										//жжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжж
 										// uvs index , индексы текстурных координат , "блок" textures , 00 00 FF FF 74 65 78 74 75 72 65 73
+										//жжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжж
 
 										int o = i + fb_size + 16 ;	//	начало блока prism/faces + его размер + размер "заголовока" блока textures
 										byte[] uv_index_int = { array1d[ o + 0 ] , array1d[ o + 1 ] , array1d[ o + 2 ] , array1d[ o + 3 ] } ; 
 										uv_index_count = BitConverter.ToInt32 ( uv_index_int , 0 ) ; // получили количество индексов
 
-										for ( int ii = 0 ; ii < uv_index_count*2 ; ii++ )	//	одно число занимает два байта	//	прочитали если индексов 4 то 8 байт
+										for ( int ii = 0 ; ii < uv_index_count*2 ; ii++ )	//	одно число = два байта	//	4 индекса это 8 байт
 													uv_index.Add ( array1d[ o + ii + 4] ) ; //	добавляем индексы в список
 
 								//	uvi_int.Add ("#"); // это необходимо , чтобы "индекс не был нолём"
@@ -197,7 +200,7 @@ sealed class big2obj
 										for ( int iii = 0 ; iii < uv_index.Count ; iii += 2 )	//	добавляем индексы в виде строк в файл
 										{
 												byte[] twoBytes1 = { uv_index[ iii + 0 ] , uv_index[ iii + 1 ] } ; // 00 00  
-												st1 = ( Int16 )BitConverter.ToInt16 ( twoBytes1 , 0 ) + 1 ; // 0
+												int st1 = ( Int16 )BitConverter.ToInt16 ( twoBytes1 , 0 ) + 1 ; // +1 потому что в obj индексация идёт с 1, а не с ноля
 												uvi_int.Add ( st1 ) ; 
 										}
 
@@ -244,38 +247,37 @@ sealed class big2obj
 														prims_str.Add( "f " + (f1+1) + "/" + uvi_int[f1] + "/" + (f1+1) + " "
 														                    + (f2+1) + "/" + uvi_int[f2] + "/" + (f2+1) + " "
 														                    + (f3+1) + "/" + uvi_int[f3] + "/" + (f3+1) ) ; 
-
+														
 												}
-														primsss_count.Clear() ;
+														primsss_count.Clear();
 										}
-												//	primsss_count.Clear() ;
-												
-												for ( int k = 0 ; k < uvi_int.Count ; k++ )
-												Console.WriteLine ( vertex_str[k] + " " + uvi_int[k] ) ;
+												uvi_int.Clear();
 								}
 
+								uvi_int.Clear();
+
 								//жжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжж
-								// end of model
 								//жжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжж
 
 								if ( i == i_end - 42 ) // записываем один раз в конец файла
 								{
+										AppendAllTextToObjFile(writePath, new List<string>() { "# " + v_count + " vertices " } );
+										AppendAllTextToObjFile(writePath, vertex_str); 
+										vertex_str.Clear();
 
-									AppendAllTextToObjFile(writePath, new List<string>() { "# " + v_count + " vertices " } );
-									AppendAllTextToObjFile(writePath, vertex_str); 
+										AppendAllTextToObjFile(writePath, new List<string>() { "\n# " + n_count + " normals " } );
+										AppendAllTextToObjFile(writePath, normal_str); 
+										normal_str.Clear();
 
-									AppendAllTextToObjFile(writePath, new List<string>() { "\n# " + n_count + " normals " } );
-									AppendAllTextToObjFile(writePath, normal_str); 
+										AppendAllTextToObjFile(writePath, new List<string>() { "\n# " + vt_uv + " vt" + " = " + "UVSET " + array1d[i+16] } );
+										AppendAllTextToObjFile(writePath, vt_str); 
+										vt_str.Clear();
 
-									AppendAllTextToObjFile(writePath, new List<string>() { "\n# " + vt_uv + " vt" + " = " + "UVSET " + array1d[i+16] } );
-									AppendAllTextToObjFile(writePath, vt_str); 
-									
-									AppendAllTextToObjFile(writePath, prims_str);
+										AppendAllTextToObjFile(writePath, prims_str);
+										primsss_count.Clear();
+										prims_str.Clear();
 
-									vertex_str.Clear();
-									normal_str.Clear();
-									vt_str.Clear();
-									uvi_int.Clear();
+										uvi_int.Clear();
 								}
 
 							//жжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжж

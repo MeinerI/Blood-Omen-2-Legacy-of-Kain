@@ -170,17 +170,18 @@ class CELLINST
   public Vector3 position; 
   public Vector3 pivot; 
   public Vector3 rotation; 
+  public int minus256; 
 
   public CELLINST(BinaryReader br)
   {
     four = br.ReadInt32(); 
     link1 = br.ReadUInt16();
     link2 = br.ReadUInt16();
-    number= br.ReadInt32(); 
+    number = br.ReadInt32(); 
     position = new Vector3(br);
-    pivot    = new Vector3(br);
-    rotation = new Vector3(br);
-    br.ReadInt32(); // 00 FF FF FF
+    pivot    = new Vector3(br); // ???
+    rotation = new Vector3(br); // ???
+    minus256 = br.ReadInt32();  // 00 FF FF FF
   }
 
   public override string ToString()
@@ -192,6 +193,36 @@ class CELLINST
   }
 }
 
+//===============================================================================================
+
+class CELLMARK
+{
+  public int four; // 04 00 00 00 
+  public int number1; // номер на сцене
+  public int number2; // 
+  public int number3; // 
+  public int number4; // 
+  public Vector3 position; 
+  public Vector3 rotation; 
+  public int hz1; // 0 или 1
+  public int hz2; // 0 или 1
+  public int hz3; // 0 или 1
+
+  public CELLMARK(BinaryReader br)
+  {
+    four = br.ReadInt32(); 
+    number1 = br.ReadInt32(); 
+    number2 = br.ReadInt32(); 
+    number3 = br.ReadInt32(); 
+    number4 = br.ReadInt32(); 
+    position = new Vector3(br);
+    rotation = new Vector3(br);
+    hz1 = br.ReadInt32(); 
+    hz2 = br.ReadInt32(); 
+    hz3 = br.ReadInt32(); 
+  }
+}
+
 //88888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888
 //88888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888
 //88888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888
@@ -200,12 +231,13 @@ sealed class Scene
 {
   static List<double> float_coords;
 
-	static List<int> uvs_offset_int_list = new List<int>();     // для текущей модели
-	static List<CELLINST> cellinst_List = new List<CELLINST>(); // для текущей сцены
+  static List<int> uvs_offset_int_list = new List<int>();     // для текущей модели
+  static List<CELLINST> cellinst_List = new List<CELLINST>(); // для текущей сцены
+  static List<CELLMARK> cellmark_List = new List<CELLMARK>(); // для текущей сцены
 
-	static void Main()	
-	{
-    var filesName = Directory.GetFiles(Directory.GetCurrentDirectory(), "*.cellgrup",  SearchOption.AllDirectories); 
+  static void Main()  
+  {
+    var filesName = Directory.GetFiles(Directory.GetCurrentDirectory(), "*.cellgrup",  SearchOption.AllDirectories); // в конце можно будет юзать для *.big
 
     System.Threading.Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US");
 
@@ -265,6 +297,22 @@ sealed class Scene
               cellinst_List.Add(cellinst);
             }
           }
+          
+          // 63 65 6C 6C 6D 61 72 6B cellmark
+
+          if (array1d[i+0] == 0x63 && array1d[i+1] == 0x65 && array1d[i+2] == 0x6C && array1d[i+3] == 0x6C && // cell
+              array1d[i+4] == 0x6D && array1d[i+5] == 0x61 && array1d[i+6] == 0x72 && array1d[i+7] == 0x6B)   // mark
+          {
+            br.BaseStream.Position = i+16;
+
+            int count = br.ReadInt32(); // кол-во координат для расстановки моделей
+
+            for(int j = 0; j < count; j++)
+            {
+              CELLMARK cellmark = new CELLMARK(br);
+              cellmark_List.Add(cellmark);
+            }
+          }
 
         }
 
@@ -305,7 +353,7 @@ sealed class Scene
                 
                 int primsCount = br.ReadInt32();
 
-                for ( int j = 0 ; j < primsCount; j++ )	
+                for ( int j = 0 ; j < primsCount; j++ )  
                 {
                   int faceNumber = br.ReadInt32();  
                   int faceCount = br.ReadInt32();  
@@ -313,7 +361,7 @@ sealed class Scene
 
                   List<TRI> face = new List<TRI>();
 
-                  for ( int f = 0 ; f < faceCount; f++ )	
+                  for ( int f = 0 ; f < faceCount; f++ )  
                     face.Add(new TRI(br));
 
                   mesh.subMeshFaces.Add(face);
@@ -529,7 +577,7 @@ sealed class Scene
 
             xyz_N_array.Values = float_coords.ToArray();
 
-//-----------------------------------------------------------------------------------------------
+//----------------------------------
 
             source pos_source = new source()  //  источник для координат
             {
@@ -577,7 +625,7 @@ sealed class Scene
 
             xyz_Normals.Values = float_coords.ToArray();
 
-//-----------------------------------------------------------------------------------------------
+//----------------------------------
 
             source norm_source = new source()
             {
@@ -624,6 +672,7 @@ sealed class Scene
 //-----------------------------------------------------------------------------------------------
 
             int faceNumber = 0; 
+
             foreach ( var q in mesh.subMeshFaces)  
               foreach ( var qq in q )  
                 faceNumber++;
@@ -696,12 +745,15 @@ sealed class Scene
             node = new node[Models.Count]     //  добавляем узлы для моделей на сцене
         };
 
-//-----------------------------------------------------------------------------------------------
+//===============================================================================================
 
-        qqq = 0; // шагаем по списку "координат" моделей
+        qqq = 0; // шагаем по списку мешей, создаём им ноды, задаём расположение
 
         foreach (var mesh in Models)
         {
+
+//----------------------------------
+
             node n = new node()
             {
                 id = "mesh" + mesh.index, 
@@ -715,6 +767,8 @@ sealed class Scene
                 }
             } ;
 
+//----------------------------------
+
             n.ItemsElementName = new ItemsChoiceType2[5]
             {
                 ItemsChoiceType2.translate,
@@ -724,26 +778,66 @@ sealed class Scene
                 ItemsChoiceType2.scale
             };
 
+//----------------------------------
+
+            float xx = 0.0f; 
+            float yy = 0.0f; 
+            float zz = 0.0f; 
+
+            float rx = 0.0f; 
+            float ry = 0.0f; 
+            float rz = 0.0f; 
+
+            for (int ccc = 0; ccc < cellinst_List.Count; ccc++) 
+            {
+                if (mesh.index == cellinst_List[ccc].number) 
+                {
+                  xx = cellinst_List[ccc].position.x; 
+                  yy = cellinst_List[ccc].position.y; 
+                  zz = cellinst_List[ccc].position.z; 
+
+                  rx = cellinst_List[ccc].rotation.x;
+                  ry = cellinst_List[ccc].rotation.y;
+                  rz = cellinst_List[ccc].rotation.z;
+                }
+            }
+
+            for (int ccc = 0; ccc < cellmark_List.Count; ccc++) 
+            {
+                if (mesh.index == cellmark_List[ccc].number1)
+                {
+                  xx = cellmark_List[ccc].position.x; 
+                  yy = cellmark_List[ccc].position.y; 
+                  zz = cellmark_List[ccc].position.z; 
+
+                  rx = cellmark_List[ccc].rotation.x; 
+                  ry = cellmark_List[ccc].rotation.y; 
+                  rz = cellmark_List[ccc].rotation.z; 
+                }
+            }
+
+//----------------------------------
+
             n.Items = new object[5]
             {
-                new TargetableFloat3() {
+                new TargetableFloat3() 
+                {
                     sid    = "location", // translate
-                    Values = new double[3]          { 
-                        cellinst_List[qqq].position.x, 
-                        cellinst_List[qqq].position.z, 
-                        cellinst_List[qqq].position.y } 
+                    Values = new double[3] { xx, yy, zz } 
                 },
 
-                new rotate() { sid = "rotationX", Values = new double[4] { 0, 0, 1, cellinst_List[qqq].rotation.x } },
-                new rotate() { sid = "rotationY", Values = new double[4] { 0, 1, 0, cellinst_List[qqq].rotation.y } },
-                new rotate() { sid = "rotationZ", Values = new double[4] { 1, 0, 0, cellinst_List[qqq].rotation.z } },
+                new rotate() { sid = "rotationX", Values = new double[4] { 0, 0, 1, rx } },
+                new rotate() { sid = "rotationY", Values = new double[4] { 0, 1, 0, ry } },
+                new rotate() { sid = "rotationZ", Values = new double[4] { 1, 0, 0, rz } },
 
                 new TargetableFloat3() { sid    = "scale",  Values = new double[3] {1, 1, 1} }
             };
 
+//----------------------------------
+
             vs.node[qqq] = n;
 
-            ++qqq;
+            qqq++;
 
         } // для каждой модели в файле cellgrup
 
@@ -753,6 +847,8 @@ sealed class Scene
         {
             vs // добавляем visual_scene в library_visual_scenes
         };
+
+//-----------------------------------------------------------------------------------------------
 
         COLLADA collada = new COLLADA()
         {
@@ -774,9 +870,7 @@ sealed class Scene
                     url = "#" + vs.id
                 }
             } 
-            
         } ;
-
 
 //88888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888
 
@@ -785,6 +879,7 @@ sealed class Scene
         Models.Clear();
 
         cellinst_List.Clear();
+        cellmark_List.Clear();
 
 //88888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888
 

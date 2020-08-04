@@ -76,12 +76,14 @@ class Vector2
 class TRI  //  грань
 {
   public ushort vi0, vi1, vi2; 
+  public int subMeshContainer;
 
-  public TRI(BinaryReader br)
+  public TRI(BinaryReader br, int faceNumber)
   {
     vi0 = br.ReadUInt16();
     vi1 = br.ReadUInt16();
     vi2 = br.ReadUInt16();
+    subMeshContainer = faceNumber;
   }
   
   public override string ToString()  {
@@ -231,13 +233,13 @@ sealed class Scene
 {
   static List<double> float_coords;
 
-  static List<int> uvs_offset_int_list = new List<int>();     // для текущей модели
-  static List<CELLINST> cellinst_List = new List<CELLINST>(); // для текущей сцены
-  static List<CELLMARK> cellmark_List = new List<CELLMARK>(); // для текущей сцены
+	static List<int> uvs_offset_int_list = new List<int>();     // для текущей модели
+	static List<CELLINST> cellinst_List = new List<CELLINST>(); // для текущей сцены
+	static List<CELLMARK> cellmark_List = new List<CELLMARK>(); // для текущей сцены
 
-  static void Main()  
-  {
-    var filesName = Directory.GetFiles(Directory.GetCurrentDirectory(), "*.cellgrup",  SearchOption.AllDirectories); // в конце можно будет юзать для *.big
+	static void Main()	
+	{
+    var filesName = Directory.GetFiles(Directory.GetCurrentDirectory(), "*.cellgrup",  SearchOption.AllDirectories); 
 
     System.Threading.Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US");
 
@@ -353,7 +355,7 @@ sealed class Scene
                 
                 int primsCount = br.ReadInt32();
 
-                for ( int j = 0 ; j < primsCount; j++ )  
+                for ( int j = 0 ; j < primsCount; j++ )	
                 {
                   int faceNumber = br.ReadInt32();  
                   int faceCount = br.ReadInt32();  
@@ -361,14 +363,14 @@ sealed class Scene
 
                   List<TRI> face = new List<TRI>();
 
-                  for ( int f = 0 ; f < faceCount; f++ )  
-                    face.Add(new TRI(br));
+                  for ( int f = 0 ; f < faceCount; f++ )	
+                    face.Add(new TRI(br, faceNumber));
 
                   mesh.subMeshFaces.Add(face);
 
                   for ( int jj = 0 ; jj < 10; jj++ ) br.ReadInt32(); // непонятные данные, мб для наложения текстур
 
-                  if ((faceCount % 2) != 0) br.ReadUInt16(); // для "выравнивания"
+                  if ((faceCount % 2) != 0) br.ReadUInt16(); // для "выравнивания" читается FF FF
                 }
               }
 
@@ -826,9 +828,9 @@ sealed class Scene
                     Values = new double[3] { xx, yy, zz } 
                 },
 
-                new rotate() { sid = "rotationX", Values = new double[4] { 0, 0, 1, rx } },
-                new rotate() { sid = "rotationY", Values = new double[4] { 0, 1, 0, ry } },
-                new rotate() { sid = "rotationZ", Values = new double[4] { 1, 0, 0, rz } },
+                new rotate() { sid = "rotationX", Values = new double[4] { 0, 0, 1, rz*57.5 } }, // Z
+                new rotate() { sid = "rotationY", Values = new double[4] { 0, 1, 0, ry*57.5 } }, // Y почему такой "угол" ?
+                new rotate() { sid = "rotationZ", Values = new double[4] { 1, 0, 0, rx*57.5 } }, // X
 
                 new TargetableFloat3() { sid    = "scale",  Values = new double[3] {1, 1, 1} }
             };

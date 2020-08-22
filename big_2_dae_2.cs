@@ -1,13 +1,9 @@
-//Console.WriteLine("*");Console.WriteLine(.Count);
-//int qq = 0 ; foreach ( var q in uvi_int ) { Console.WriteLine ( qq + " " + q ) ; qq++ ; }
-#pragma warning disable 169, 414, 649
+using System; using System.IO; using System.Linq; using System.Text; 
+using System.Text.RegularExpressions; using System.Collections; 
+using System.Globalization; using System.Collections.Generic; 
+using Collada141; using System.Xml;using System.Xml.Serialization;
+using System.Runtime.Serialization.Formatters.Binary;
 
-//жжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжж
-  using System; using System.IO; using System.Linq; using System.Text; 
-  using System.Text.RegularExpressions; using System.Collections; 
-  using System.Globalization; using System.Collections.Generic; 
-  using Collada141; using System.Xml;using System.Xml.Serialization;
-  using System.Runtime.Serialization.Formatters.Binary;
 //жжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжж
 
 sealed class Scene
@@ -27,8 +23,8 @@ sealed class Scene
 
 //88888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888
 
-	static void Main()	
-	{
+ static void Main()	
+ {
     var filesName = Directory.GetFiles(Directory.GetCurrentDirectory(), "*.big",  SearchOption.AllDirectories); 
 
     System.Threading.Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US");
@@ -54,11 +50,11 @@ sealed class Scene
           {
               br.BaseStream.Position = i+8;                      // отсупаем 8 байт 
               int BlockSize = br.ReadInt32();                    // читаем размер блока
-              //br.BaseStream.Position = i;                        // "возвращаемся", чтобы скопировать модель
+              //br.BaseStream.Position = i;                      // "возвращаемся", чтобы скопировать модель
               Model model = new Model();                         // создаём объект класса модель
-              model.BaseStreamPosition = br.BaseStream.Position; // 
-              model.type = 1701080941;                           // тип model
-              model.index = number_of_model_in_big++;            // присваиваем и увеличиваем индекс
+              model.BaseStreamPositionOffset = br.BaseStream.Position; // 
+              model.type = "model";                              // тип model
+              model.model_index = number_of_model_in_big++;      // присваиваем и увеличиваем индекс
               model.content = br.ReadBytes(BlockSize).ToList();  //  
               MODELS_IN_BIG_FILE_LIST.Add(model);                // добавляем объект "модель" в  
           }
@@ -70,10 +66,47 @@ sealed class Scene
           {
               br.BaseStream.Position = i+8;
               int BlockSize = br.ReadInt32();
+              br.BaseStream.Position = i;
               if (BlockSize > 100000)
               {
                 cellgrupArray = new byte[BlockSize];     // создаём массив нужного размера
                 cellgrupArray = br.ReadBytes(BlockSize); // читаем в него байты из файла с (текущей позиции+8)
+
+                using (MemoryStream memory = new MemoryStream(cellgrupArray)) // сохраняем cellgrup во "временный" файл
+                {
+                  using (BinaryReader brm = new BinaryReader(memory)) //  читаем из этого файла 
+                  {
+                    for ( int ii = 0 ; ii < cellgrupArray.Length ; ii++ ) // вдоль всего массива байт
+                    {
+                      if (cellgrupArray[ii+0] == 0x69 && cellgrupArray[ii+1] == 0x00 && cellgrupArray[ii+2] == 0x00 && cellgrupArray[ii+3] == 0x00 &&  // i***
+                          cellgrupArray[ii+4] == 0x64 && cellgrupArray[ii+5] == 0x65 && cellgrupArray[ii+6] == 0x66 && cellgrupArray[ii+7] == 0x61 &&  // defa
+                          cellgrupArray[ii+8] == 0x75 && cellgrupArray[ii+9] == 0x6C && cellgrupArray[ii+10]== 0x74 && cellgrupArray[ii+11]== 0x00 )   // ult*
+                      {
+                        brm.BaseStream.Position = ii+12; // отступаем от "вхождения" на i***default* байт
+                        BlockSize = brm.ReadInt32(); // размер блока 
+                        brm.ReadInt32(); // пропускаем пустые байты [00 00 00 00]
+
+                        int type = brm.ReadInt32(); // "тип" модели
+
+                        if (type == 1819045731) number_mesh_in_cellgrup++; // coll[modc]
+
+                        if (type == 1634493549) number_mesh_in_cellgrup++; // mdla[ttr*]
+
+                        if (type == 6581618) // только для rmd*[****]
+                        {
+                          brm.BaseStream.Position = ii+4; // "возвращаемся", чтобы скопировать модель
+                          Model mesh = new Model(); // создаём модель
+                          mesh.BaseStreamPositionOffset = brm.BaseStream.Position + i; // какая важная строчка! :)
+                          if (mesh.type != "model") mesh.type = "rmd";
+                          mesh.cells_index = number_mesh_in_cellgrup++; // присваиваем и увеличиваем индекс
+                          mesh.content = brm.ReadBytes(BlockSize).ToList();
+                          MESHES_IN_CELLGRUP_LIST.Add(mesh); // добавляем её в список моделей на "сцене"
+                        }
+                          // i = i + BlockSize; // ускоряем поиск? 
+                      }
+                    }
+                  }
+                } // in memory
               }
           }
 
@@ -113,70 +146,29 @@ sealed class Scene
 
 //88888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888
 
-      using (MemoryStream memory = new MemoryStream(cellgrupArray)) // сохраняем cellgrup во "временный" файл
-      {
-        using (BinaryReader br = new BinaryReader(memory)) //  читаем из этого файла 
-        {
-          for ( int i = 0 ; i < cellgrupArray.Length ; i++ ) // вдоль всего массива байт
-          {
-            if (cellgrupArray[i+0] == 0x69 && cellgrupArray[i+1] == 0x00 && cellgrupArray[i+2] == 0x00 && cellgrupArray[i+3] == 0x00 &&  // i***
-                cellgrupArray[i+4] == 0x64 && cellgrupArray[i+5] == 0x65 && cellgrupArray[i+6] == 0x66 && cellgrupArray[i+7] == 0x61 &&  // defa
-                cellgrupArray[i+8] == 0x75 && cellgrupArray[i+9] == 0x6C && cellgrupArray[i+10]== 0x74 && cellgrupArray[i+11]== 0x00 )   // ult*
-            {
-              br.BaseStream.Position = i+12; // отступаем от "вхождения" на i***default* байт
-              int BlockSize = br.ReadInt32(); // размер блока 
-              br.ReadInt32(); // пропускаем пустые байты [00 00 00 00]
-
-              int type = br.ReadInt32(); // "тип" модели
-
-              if (type == 1819045731) number_mesh_in_cellgrup++; // coll[modc]
-
-              if (type == 1634493549) number_mesh_in_cellgrup++; // mdla[ttr*]
-
-              if (type == 6581618) // только для rmd*[****]
-              {
-                br.BaseStream.Position = i+4; // "возвращаемся", чтобы скопировать модель
-                Model mesh = new Model(); // создаём модель
-                mesh.BaseStreamPosition = br.BaseStream.Position;
-                if (mesh.type != 1701080941) mesh.type = type;
-                mesh.index = number_mesh_in_cellgrup++; // присваиваем и увеличиваем индекс
-                mesh.content = br.ReadBytes(BlockSize).ToList();
-                MESHES_IN_CELLGRUP_LIST.Add(mesh); // добавляем её в список моделей на "сцене"
-              }
-                i = i + BlockSize; // ускоряем поиск? 
-            }
-          }
-        }
-      } // in memory
-
-//88888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888
-
     int mesh1count = MESHES_IN_CELLGRUP_LIST.Count; Console.WriteLine(mesh1count);
     int mesh2count = MODELS_IN_BIG_FILE_LIST.Count; Console.WriteLine(mesh2count);
 
     foreach (var model in MODELS_IN_BIG_FILE_LIST)
-      model.index = model.index + MESHES_IN_CELLGRUP_LIST.Count;
+      model.model_index = model.model_index + MESHES_IN_CELLGRUP_LIST[mesh1count-1].cells_index;
 
-    //MESHES_IN_CELLGRUP_LIST.AddRange(MODELS_IN_BIG_FILE_LIST); // 17 + 26 = 43
+    MESHES_IN_CELLGRUP_LIST.AddRange(MODELS_IN_BIG_FILE_LIST); // 17 + 26 = 43
 
 //88888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888
 
-    using (MemoryStream memory = new MemoryStream(cellgrupArray)) // сохраняем cellgrup в "временный" файл
-    {
-      using (BinaryReader br = new BinaryReader(memory)) //  читаем из этого файла 
+      using (var br = new BinaryReader(File.Open(file, FileMode.Open)))
       {
         foreach (var mesh in MESHES_IN_CELLGRUP_LIST) // для каждой модели
         {
-          if (mesh.type == 6581618)
-          {
             for ( int ji = 0 ; ji < mesh.content.Count ; ji++ )
             {
+
               // ИЩЕМ ВЕРШИНЫ // v // если нашли строку "position" = 00 00 00 00 70 6F 73 69 74 69 6F 6E 
 
               if (mesh.content[ji+0] == 0x70 && mesh.content[ji+1] == 0x6F && mesh.content[ji+2] == 0x73 && mesh.content[ji+3] == 0x69 && // 70 6F 73 69 
                   mesh.content[ji+4] == 0x74 && mesh.content[ji+5] == 0x69 && mesh.content[ji+6] == 0x6F && mesh.content[ji+7] == 0x6E )  // 74 69 6F 6E 
               {
-                br.BaseStream.Position = mesh.BaseStreamPosition + ji + 16; // +20, если отступаем OOOO_position
+                br.BaseStream.Position = mesh.BaseStreamPositionOffset + ji + 16; // +20, если отступаем OOOO_position
 
                 int count = br.ReadInt32();
                 for(int j = 0; j < count; j++)
@@ -188,7 +180,7 @@ sealed class Scene
               if ( mesh.content[ji+0] == 0x6E && mesh.content[ji+1] == 0x6F && mesh.content[ji+2] == 0x72 && mesh.content[ji+3] == 0x6D && // 6E 6F 72 6D 
                    mesh.content[ji+4] == 0x61 && mesh.content[ji+5] == 0x6C && mesh.content[ji+6] == 0x73 && mesh.content[ji+7] == 0x00 )  // 61 6C 73 00
               {
-                br.BaseStream.Position = mesh.BaseStreamPosition + ji + 16;
+                br.BaseStream.Position = mesh.BaseStreamPositionOffset + ji + 16;
                 int count = br.ReadInt32();
                 for(int j = 0; j < count; j++)
                   mesh.normalsList.Add(new Vector3(br));
@@ -198,7 +190,7 @@ sealed class Scene
 
               if ( mesh.content[ji+0] == 0x70 && mesh.content[ji+1] == 0x72 && mesh.content[ji+2] == 0x69 && mesh.content[ji+3] == 0x6D ) // 70 72 69 6D 73
               {
-                br.BaseStream.Position = mesh.BaseStreamPosition + ji + 16;
+                br.BaseStream.Position = mesh.BaseStreamPositionOffset + ji + 16;
                 
                 int primsCount = br.ReadInt32();
 
@@ -227,7 +219,7 @@ sealed class Scene
               if ( mesh.content[ji+0] == 0x74 && mesh.content[ji+1] == 0x65 && mesh.content[ji+2] == 0x78 && mesh.content[ji+3] == 0x74 && // если да
                    mesh.content[ji+4] == 0x75 && mesh.content[ji+5] == 0x72 && mesh.content[ji+6] == 0x65 && mesh.content[ji+7] == 0x73 ) // то изменить индексы
               {
-                  br.BaseStream.Position = mesh.BaseStreamPosition + ji + 16; // или +20 в big файле 
+                  br.BaseStream.Position = mesh.BaseStreamPositionOffset + ji + 16; // или +20 в big файле 
                   int count = br.ReadInt32();
                   for(int j = 0; j < count; j++) 
                     mesh.texturesList.Add (br.ReadUInt16()) ; 
@@ -240,13 +232,13 @@ sealed class Scene
                 uvs_offset_int_list.Add(ji);
 
 ///////////////
-/*
+
               // mdlattr*
 
               if ( mesh.content[ji+0] == 0x6D && mesh.content[ji+1] == 0x64 && mesh.content[ji+2] == 0x6C && mesh.content[ji+3] == 0x61 &&
                    mesh.content[ji+4] == 0x74 && mesh.content[ji+5] == 0x74 && mesh.content[ji+6] == 0x72 && mesh.content[ji+7] == 0x00)
               {
-                  br.BaseStream.Position = mesh.BaseStreamPosition + ji + 8;
+                  br.BaseStream.Position = mesh.BaseStreamPositionOffset + ji + 8;
                   int BlockSize = br.ReadInt32(); br.ReadInt32(); // 00 00 00 00 
                   
                   br.ReadInt32(); // 00 00 00 00 
@@ -257,13 +249,13 @@ sealed class Scene
                   br.ReadInt32();
                   br.ReadInt32();
               }
-*/
+
 ///////////// mtlctrl* // 6D 74 6C 63 74 72 6C 00 
 
               if ( mesh.content[ji+0] == 0x6D && mesh.content[ji+1] == 0x74 && mesh.content[ji+2] == 0x6C && mesh.content[ji+3] == 0x63 && // 6D 74 6C 63 
                    mesh.content[ji+4] == 0x74 && mesh.content[ji+5] == 0x72 && mesh.content[ji+6] == 0x6C && mesh.content[ji+7] == 0x00)   // 74 72 6C 00 
               {
-                  br.BaseStream.Position = mesh.BaseStreamPosition + ji + 16;
+                  br.BaseStream.Position = mesh.BaseStreamPositionOffset + ji + 16;
                   int count = br.ReadInt32(); 
                   for ( int j = 0 ; j < count; j++ ) 
                   {
@@ -277,7 +269,7 @@ sealed class Scene
               if ( mesh.content[ji+0] == 0x6D && mesh.content[ji+1] == 0x6C && mesh.content[ji+2] == 0x79 && mesh.content[ji+3] == 0x72 && // 6D 6C 79 72 
                    mesh.content[ji+4] == 0x63 && mesh.content[ji+5] == 0x6F && mesh.content[ji+6] == 0x6C && mesh.content[ji+7] == 0x72 )  // 63 6F 6C 72 
               {
-                  br.BaseStream.Position = mesh.BaseStreamPosition + ji + 20;
+                  br.BaseStream.Position = mesh.BaseStreamPositionOffset + ji + 20;
                   int count = br.ReadInt32(); 
 
                   for ( int j = 0 ; j < count; j++ ) 
@@ -295,7 +287,7 @@ sealed class Scene
               if ( mesh.content[ji+0] == 0x6D && mesh.content[ji+1] == 0x6C && mesh.content[ji+2] == 0x79 && mesh.content[ji+3] == 0x72 && // 6D 6C 79 72 
                    mesh.content[ji+4] == 0x63 && mesh.content[ji+5] == 0x74 && mesh.content[ji+6] == 0x72 && mesh.content[ji+7] == 0x6C )  // 63 74 72 6C 
               {
-                  br.BaseStream.Position = mesh.BaseStreamPosition + ji + 16;
+                  br.BaseStream.Position = mesh.BaseStreamPositionOffset + ji + 16;
                   int flag = br.ReadInt32(); // 0 или 1 
                   int count = br.ReadInt32(); 
 
@@ -306,12 +298,12 @@ sealed class Scene
                   }
               }
 
-///////////// texture* +++
-
+///////////// texture* +++	// начала появлятся ошибка :С
+/*
               if ( mesh.content[ji+0] == 0x74 && mesh.content[ji+1] == 0x65 && mesh.content[ji+2] == 0x78 && mesh.content[ji+3] == 0x74 && // 74 65 78 74 
                    mesh.content[ji+4] == 0x75 && mesh.content[ji+5] == 0x72 && mesh.content[ji+6] == 0x65 && mesh.content[ji+7] == 0x00 )  // 75 72 65 00 
               {
-                  br.BaseStream.Position = mesh.BaseStreamPosition + ji + 20; // br.BaseStream.Position = mesh.BaseStreamPosition + ji + 20;
+                  br.BaseStream.Position = mesh.BaseStreamPositionOffset + ji + 20; 
 
                   int count = br.ReadInt32();
 
@@ -321,13 +313,13 @@ sealed class Scene
                       mesh.texture_List.Add(thz);
                   }
               }
-
+*/
 ///////////// vtxweigh +++
 
               if ( mesh.content[ji+0] == 0x76 && mesh.content[ji+1] == 0x74 && mesh.content[ji+2] == 0x78 && mesh.content[ji+3] == 0x77 && // 76 74 78 77 
                    mesh.content[ji+4] == 0x65 && mesh.content[ji+5] == 0x69 && mesh.content[ji+6] == 0x67 && mesh.content[ji+7] == 0x68 )  // 65 69 67 68
               {
-                  br.BaseStream.Position = mesh.BaseStreamPosition + ji + 16;
+                  br.BaseStream.Position = mesh.BaseStreamPositionOffset + ji + 16;
                   int count = br.ReadInt32();
                   for(int ii = 0; ii < count; ii++)
                     mesh.vtxweighList.Add(br.ReadSingle());
@@ -338,7 +330,7 @@ sealed class Scene
               if ( mesh.content[ji+0] == 0x6A && mesh.content[ji+1] == 0x6F && mesh.content[ji+2] == 0x69 && mesh.content[ji+3] == 0x6E && // 6A 6F 69 6E // join
                    mesh.content[ji+4] == 0x74 && mesh.content[ji+5] == 0x69 && mesh.content[ji+6] == 0x64 && mesh.content[ji+7] == 0x78 )  // 74 69 64 78 // tidx
               {
-                  br.BaseStream.Position = mesh.BaseStreamPosition + ji + 16;
+                  br.BaseStream.Position = mesh.BaseStreamPositionOffset + ji + 16;
 
                   int count = br.ReadInt32();
 
@@ -359,7 +351,7 @@ sealed class Scene
 
               if (uvs_offset_int_list.Count > 0)
               {
-                br.BaseStream.Position = mesh.BaseStreamPosition + uvs_offset_int_list[0] + 8;
+                br.BaseStream.Position = mesh.BaseStreamPositionOffset + uvs_offset_int_list[0] + 8;
                 int BlockSizeU0 = br.ReadInt32();  br.ReadInt32();
                 int number0 = br.ReadInt32(); // 00 00 00 00
                 int uvsCount = br.ReadInt32();
@@ -372,7 +364,7 @@ sealed class Scene
 
               if (uvs_offset_int_list.Count > 1)
               {
-                br.BaseStream.Position = mesh.BaseStreamPosition + uvs_offset_int_list[1] + 8;
+                br.BaseStream.Position = mesh.BaseStreamPositionOffset + uvs_offset_int_list[1] + 8;
                 int BlockSizeU1 = br.ReadInt32();  br.ReadInt32();
                 int number1 = br.ReadInt32(); // 01 00 00 00
                 int uvsCount = br.ReadInt32();
@@ -384,11 +376,10 @@ sealed class Scene
               }
 
               uvs_offset_int_list.Clear(); // обязательно очищаем для другой модели
-          }
 
         } // для каждой модели
       }
-    }
+    
 
 //88888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888
 //88888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888
@@ -400,15 +391,19 @@ sealed class Scene
 
         library_geometries lgeom = new library_geometries() // создаём библиотеку мешей
         {
-            geometry = new geometry[MESHES_IN_CELLGRUP_LIST.Count] // в библиотеке геометрии MESHES_IN_CELLGRUP_LIST.Count мешей
+            geometry = new geometry[MESHES_IN_CELLGRUP_LIST.Count + MODELS_IN_BIG_FILE_LIST.Count] // в библиотеке геометрии MESHES_IN_CELLGRUP_LIST.Count мешей
         };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
         int qqq = 0; // шагаем по списку геометрий в файле
 
+        int m_index = 0;
+
         foreach (var mesh in MESHES_IN_CELLGRUP_LIST) // для каждой модели
         {
+            if (mesh.type == "model") m_index = mesh.model_index;
+            if (mesh.type == "rmd"  ) m_index = mesh.cells_index;
 
 //===============================================================================================
 
@@ -417,7 +412,7 @@ sealed class Scene
             float_array xyz_N_array = new float_array() // массив для координат
             {
               count = (ulong)mesh.positionList.Count * 3,
-              id    = "mesh_" + mesh.index + "_positions_array"
+              id    = "mesh_" + m_index + "_positions_array"
             };
 
             float_coords = new List<double>();
@@ -434,7 +429,7 @@ sealed class Scene
             source pos_source = new source()  //  источник для координат
             {
                 Item  =  xyz_N_array,
-                id    =  "mesh_" + mesh.index + "_positions",
+                id    =  "mesh_" + m_index + "_positions",
 
                 technique_common = new sourceTechnique_common()
                 {
@@ -462,7 +457,7 @@ sealed class Scene
             float_array xyz_Normals = new float_array()
             {
                 count = (ulong)mesh.normalsList.Count * 3, 
-                id    = "mesh_" + mesh.index + "_normals_array"
+                id    = "mesh_" + m_index + "_normals_array"
             };
 
             float_coords = new List<double>();
@@ -481,7 +476,7 @@ sealed class Scene
             source norm_source = new source()
             {
                 Item  =  xyz_N_array, 
-                id    =  "mesh_" + mesh.index + "_normals", 
+                id    =  "mesh_" + m_index + "_normals", 
 
                 technique_common = new sourceTechnique_common()
                 {
@@ -507,7 +502,7 @@ sealed class Scene
 
             vertices v = new vertices()  //  вершины = часть объекта mesh
             {
-                id    = "mesh_" + mesh.index + "_vertices", 
+                id    = "mesh_" + m_index + "_vertices", 
 
                 input = new InputLocal[]
                 {
@@ -577,7 +572,7 @@ sealed class Scene
 
             geometry geom = new geometry() // создаём оболочку для меши
             {
-                id   = "mesh_" + mesh.index, // задаём ей имя mesh_№
+                id   = "mesh_" + m_index, // задаём ей имя mesh_№
                 Item = m
             };
 
@@ -593,9 +588,11 @@ sealed class Scene
         {
             id = "MyScene",                   //  обзываем её
             
-            node = new node[MESHES_IN_CELLGRUP_LIST.Count]     //  добавляем узлы для моделей на сцене
+            node = new node[MESHES_IN_CELLGRUP_LIST.Count + MODELS_IN_BIG_FILE_LIST.Count]     //  добавляем узлы для моделей на сцене
         };
 
+//===============================================================================================
+//===============================================================================================
 //===============================================================================================
 
         qqq = 0; // шагаем по списку мешей, создаём им ноды, задаём расположение
@@ -603,11 +600,14 @@ sealed class Scene
         foreach (var mesh in MESHES_IN_CELLGRUP_LIST)
         {
 
+            if (mesh.type == "model") m_index = mesh.model_index;
+            if (mesh.type == "rmd"  ) m_index = mesh.cells_index;
+
 //----------------------------------
 
             node n = new node()
             {
-                id = "mesh" + mesh.index, 
+                id = "mesh" + m_index, 
 
                 instance_geometry = new instance_geometry[]
                 {
@@ -639,11 +639,11 @@ sealed class Scene
             float ry = 0.0f; 
             float rz = 0.0f; 
 
-            if (mesh.type == 6581618) // для rdm*****
+            if (mesh.type == "rmd") // для rdm*****
             {
               for (int ccc = 0; ccc < cellinst_List.Count; ccc++) 
               {
-                  if (mesh.index == cellinst_List[ccc].number) 
+                  if (m_index == cellinst_List[ccc].number) 
                   {
                     xx = cellinst_List[ccc].position.x; 
                     yy = cellinst_List[ccc].position.y; 
@@ -657,7 +657,7 @@ sealed class Scene
 
               for (int ccc = 0; ccc < cellmark_List.Count; ccc++) 
               {
-                  if (mesh.index == cellmark_List[ccc].number1)
+                  if (m_index == cellmark_List[ccc].number1)
                   {
                     xx = cellmark_List[ccc].position.x; 
                     yy = cellmark_List[ccc].position.y; 
@@ -670,11 +670,11 @@ sealed class Scene
               }
             }
 
-            if (mesh.type == 1701080941) // для model***
+            if (mesh.type == "model") // для model***
             {
               for (int ccc = 0; ccc < cellmark_List.Count; ccc++) 
               {
-                  if (mesh.index == cellmark_List[ccc].number2)
+                  if (m_index == cellmark_List[ccc].number2)
                   {
                     xx = cellmark_List[ccc].position.x; 
                     yy = cellmark_List[ccc].position.y; 
@@ -769,11 +769,13 @@ sealed class Scene
 [Serializable]
 class Model
 {
-  public long BaseStreamPosition; // смещение модели от начала файла
+  public long BaseStreamPositionOffset; // смещение модели от начала файла
 
   public int index; // порядковый номер появления в файле
+  public int model_index; // порядковый номер появления модели в файле
+  public int cells_index; // порядковый номер появления модели в блоке cellgrup
 
-  public int type; // может быть rdm***** или collmodc или mdlattr*
+  public string type;    // может быть rdm***** или collmodc или mdlattr*
 
   public List<byte> content = new List<byte>(); // избыточность 
 
@@ -794,7 +796,19 @@ class Model
   public List<Mlyrcolr> mlyrcolrList = new List<Mlyrcolr>();
   public List<Mlyrctrl> mlyrctrlList = new List<Mlyrctrl>();
   public List<Mtlctrl>  mtlctrlList  = new List<Mtlctrl>();
+  
+  public override string ToString() 
+  {
+    return String.Format(
+    "offset= "     + BaseStreamPositionOffset      + "\t\t\t" + 
+    "model_index " + model_index + "\t\t\t" + 
+    "cells_index " + cells_index + "\t\t\t" + 
+    "type "        + type        + "\t\t\t" + 
+    "content "     + content.Count
+    );
+  }
 }
+
 
 //88888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888
 //88888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888

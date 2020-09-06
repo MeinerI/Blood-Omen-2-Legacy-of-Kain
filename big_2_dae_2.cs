@@ -1,16 +1,25 @@
-using System; using System.IO; using System.Linq; using System.Text; 
-using System.Text.RegularExpressions; using System.Collections; 
-using System.Globalization; using System.Collections.Generic; 
-using Collada141; using System.Xml;using System.Xml.Serialization;
-using System.Runtime.Serialization.Formatters.Binary;
+//Console.WriteLine("*");Console.WriteLine(.Count);
+//int qq = 0 ; foreach ( var q in uvi_int ) { Console.WriteLine ( qq + " " + q ) ; qq++ ; }
+#pragma warning disable 169, 414, 649
 
+//жжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжж
+  using System; using System.IO; using System.Linq; using System.Text; 
+  using System.Text.RegularExpressions; using System.Collections; 
+  using System.Globalization; using System.Collections.Generic; 
+  using Collada141; using System.Xml;using System.Xml.Serialization;
+  using System.Runtime.Serialization.Formatters.Binary;
 //жжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжж
 
 sealed class Scene
 {
   static List<double> float_coords;
 
-	static List<int> uvs_offset_int_list = new List<int>();     // для текущей модели
+  static int index_in_big = 0; // индекс появления "сущности" в big файле
+
+	static List<int> uvs_offset_int_list = new List<int>(); // для текущей модели
+
+	static bool region_flag   = true; // ищем только первое вхождение
+	static bool planinfo_flag = true; // чтобы считать блок целиком
 
 	static List<CELLINST> cellinst_List = new List<CELLINST>(); // для текущей сцены
 	static List<CELLMARK> cellmark_List = new List<CELLMARK>(); // для текущей сцены
@@ -18,13 +27,14 @@ sealed class Scene
 	static List<Model> MESHES_IN_CELLGRUP_LIST = new List<Model>(); // список мешей на сцене
 	static List<Model> MODELS_IN_BIG_FILE_LIST = new List<Model>(); // список моделей на сцене
 
-	static byte[] cellgrupArray;
-	static List<byte[]> cellgrupListArray = new List<byte[]>();
+	static byte[] cellgrupArray; // массив для хранения содержимого cellgrup файла
+	static byte[] planinfoArray; // массив для хранения содержимого planinfo файла
+	static byte[] regionArray;   // массив для хранения содержимого region   файла
 
 //88888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888
 
- static void Main()	
- {
+	static void Main()	
+	{
     var filesName = Directory.GetFiles(Directory.GetCurrentDirectory(), "*.big",  SearchOption.AllDirectories); 
 
     System.Threading.Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US");
@@ -33,8 +43,8 @@ sealed class Scene
     {
       byte[] array1d = File.ReadAllBytes(file) ;
 
-      int number_mesh_in_cellgrup = 0; // счётчик вхождений 
-      int number_of_model_in_big = 0;
+      int number_in_cellgrup = 0; // счётчик вхождений 
+      int number_of_model = 0;
 
 //88888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888
 
@@ -43,23 +53,26 @@ sealed class Scene
         for ( int i = 0 ; i < array1d.Length ; i++ ) // проходим по всем байтам файла *.big
         {
 
-          // 6D 6F 64 65 6C 00 00 00 model*** (это модели на уровне)
+          // model*** 6D 6F 64 65 6C 00 00 00 (это модели на уровне)
 
           if (array1d[i+0] == 0x6D && array1d[i+1] == 0x6F && array1d[i+2] == 0x64 && array1d[i+3] == 0x65 && // mode
               array1d[i+4] == 0x6C && array1d[i+5] == 0x00 && array1d[i+6] == 0x00 && array1d[i+7] == 0x00 )  // l***
           {
-              br.BaseStream.Position = i+8;                      // отсупаем 8 байт 
-              int BlockSize = br.ReadInt32();                    // читаем размер блока
-              //br.BaseStream.Position = i;                      // "возвращаемся", чтобы скопировать модель
-              Model model = new Model();                         // создаём объект класса модель
+              br.BaseStream.Position = i+8;    // отсупаем 8 байт 
+              int BlockSize = br.ReadInt32();  // читаем размер блока
+              br.BaseStream.Position = i;      // "возвращаемся", чтобы скопировать модель
+              Model model = new Model();       // создаём объект класса модель
+
               model.BaseStreamPositionOffset = br.BaseStream.Position; // 
-              model.type = "model";                              // тип model
-              model.model_index = number_of_model_in_big++;      // присваиваем и увеличиваем индекс
-              model.content = br.ReadBytes(BlockSize).ToList();  //  
-              MODELS_IN_BIG_FILE_LIST.Add(model);                // добавляем объект "модель" в  
+
+              model.type = "model";                   // тип model
+              model.model_index = number_of_model++;  // присваиваем и увеличиваем индекс
+              model.index_in_big = index_in_big++;    // 
+              model.content = br.ReadBytes(BlockSize).ToList();  // 
+              MODELS_IN_BIG_FILE_LIST.Add(model);                // добавляем "модель" в список
           }
 
-          // 63 65 6C 6C 67 72 75 70 cellgrup (это блок геометрии статичных объектов на уровне)
+          // cellgrup 63 65 6C 6C 67 72 75 70 (это блок геометрии статичных объектов на уровне)
 
           if (array1d[i+0] == 0x63 && array1d[i+1] == 0x65 && array1d[i+2] == 0x6C && array1d[i+3] == 0x6C && // cell
               array1d[i+4] == 0x67 && array1d[i+5] == 0x72 && array1d[i+6] == 0x75 && array1d[i+7] == 0x70 )  // grup
@@ -67,6 +80,7 @@ sealed class Scene
               br.BaseStream.Position = i+8;
               int BlockSize = br.ReadInt32();
               br.BaseStream.Position = i;
+
               if (BlockSize > 100000)
               {
                 cellgrupArray = new byte[BlockSize];     // создаём массив нужного размера
@@ -88,17 +102,21 @@ sealed class Scene
 
                         int type = brm.ReadInt32(); // "тип" модели
 
-                        if (type == 1819045731) number_mesh_in_cellgrup++; // coll[modc]
+                        if (type == 1819045731) number_in_cellgrup++; // coll[modc]
 
-                        if (type == 1634493549) number_mesh_in_cellgrup++; // mdla[ttr*]
+                        if (type == 1634493549) number_in_cellgrup++; // mdla[ttr*]
 
                         if (type == 6581618) // только для rmd*[****]
                         {
+                        //Console.WriteLine(brm.BaseStream.Position + BlockSize + i);
                           brm.BaseStream.Position = ii+4; // "возвращаемся", чтобы скопировать модель
                           Model mesh = new Model(); // создаём модель
                           mesh.BaseStreamPositionOffset = brm.BaseStream.Position + i; // какая важная строчка! :)
                           if (mesh.type != "model") mesh.type = "rmd";
-                          mesh.cells_index = number_mesh_in_cellgrup++; // присваиваем и увеличиваем индекс
+
+                          mesh.cells_index = number_in_cellgrup++; // присваиваем и увеличиваем индекс
+                          mesh.index_in_big = index_in_big++;
+
                           mesh.content = brm.ReadBytes(BlockSize).ToList();
                           MESHES_IN_CELLGRUP_LIST.Add(mesh); // добавляем её в список моделей на "сцене"
                         }
@@ -110,7 +128,7 @@ sealed class Scene
               }
           }
 
-          // 63 65 6C 6C 69 6E 73 74 cellinst (места растановки статичных объектов на уровне)
+          // cellinst 63 65 6C 6C 69 6E 73 74 (места растановки статичных объектов на уровне)
 
           if (array1d[i+0] == 0x63 && array1d[i+1] == 0x65 && array1d[i+2] == 0x6C && array1d[i+3] == 0x6C && // cell
               array1d[i+4] == 0x69 && array1d[i+5] == 0x6E && array1d[i+6] == 0x73 && array1d[i+7] == 0x74)   // inst
@@ -126,7 +144,7 @@ sealed class Scene
             }
           }
           
-          // 63 65 6C 6C 6D 61 72 6B cellmark (места расстановки моделей на уровне)
+          // cellmark 63 65 6C 6C 6D 61 72 6B (места расстановки моделей на уровне)
 
           if (array1d[i+0] == 0x63 && array1d[i+1] == 0x65 && array1d[i+2] == 0x6C && array1d[i+3] == 0x6C && // cell
               array1d[i+4] == 0x6D && array1d[i+5] == 0x61 && array1d[i+6] == 0x72 && array1d[i+7] == 0x6B)   // mark
@@ -141,16 +159,207 @@ sealed class Scene
               cellmark_List.Add(cellmark);
             }
           }
+
+          // planinfo 70 6C 61 6E 69 6E 66 6F (тоже нужные координаты)
+
+          if (array1d[i+0] == 0x70 && array1d[i+1] == 0x6C && array1d[i+2] == 0x61 && array1d[i+3] == 0x6E &&
+              array1d[i+4] == 0x69 && array1d[i+5] == 0x6E && array1d[i+6] == 0x66 && array1d[i+7] == 0x6F && planinfo_flag == true)
+          {
+              planinfo_flag = false; // нашли
+              br.BaseStream.Position = i+8;
+              int BlockSize = br.ReadInt32();
+              br.BaseStream.Position = i;
+              Console.WriteLine("planinfo " + i + " " + BlockSize);
+
+              planinfoArray = new byte[BlockSize];    // создаём массив нужного размера
+              planinfoArray = br.ReadBytes(BlockSize); // читаем в него байты из файла с (текущей позиции+8)
+
+              using (MemoryStream memory = new MemoryStream(planinfoArray)) // сохраняем cellgrup во "временный" файл
+              {
+                using (BinaryReader brm = new BinaryReader(memory)) //  читаем из этого файла 
+                {
+                  brm.ReadInt32();brm.ReadInt32(); // planinfo // 70 6C 61 6E 69 6E 66 6F
+                  brm.ReadInt32();brm.ReadInt32(); // size
+
+                  int digit = brm.ReadInt32();    // хз
+              //--------------------------------
+                  brm.ReadInt32();brm.ReadInt32(); // symlist* // 73 79 6D 6C 69 73 74 00
+                  brm.ReadInt32();brm.ReadInt32(); // size
+                  brm.ReadInt32(); // содержимое
+              //--------------------------------
+                  int size = brm.ReadInt32();      // 
+//костыль{
+                  long offset = brm.BaseStream.Position;
+
+                  int ffffffff1 = brm.ReadInt32(); 
+                  int ffffffff2 = 0;
+                  if (ffffffff1 == -1) 
+                  {
+                    ffffffff2 = brm.ReadInt32(); 
+                    // Console.WriteLine(ffffffff1 + " " + ffffffff2);
+                  }
+                  else brm.BaseStream.Position = offset;
+//костыль}
+                  brm.ReadInt32();brm.ReadInt32(); // planinfo // 70 6C 61 6E 69 6E 66 6F
+                  brm.ReadInt32(); // size
+                  brm.ReadInt32(); // хз 
+                  
+                  brm.ReadInt32();brm.ReadInt32(); // plannode // 70 6C 61 6E 6E 6F 64 65
+                  brm.ReadInt32();brm.ReadInt32(); // size
+
+                  ushort hz1 = brm.ReadUInt16(); // хз
+                  ushort cnt = brm.ReadUInt16(); // количество 
+                  ushort hz3 = brm.ReadUInt16(); // хз
+                  ushort ffff= brm.ReadUInt16(); // FF FF // "выравниватель"
+              //--------------------------------
+                  int one_hundred = brm.ReadInt32(); // 64 00 00 00
+
+                  for (int h = 0; h < one_hundred; h++)
+                  {
+                    plannode_stuff_1 pns1 = new plannode_stuff_1(brm);
+                  }
+              //--------------------------------
+                  int five_hundred = brm.ReadInt32(); // F4 01 00 00 
+
+                  for (int h = 0; h < five_hundred; h++)
+                  {
+                    brm.ReadInt32();brm.ReadInt32();
+                  }
+              //--------------------------------
+                  int blocks_count = brm.ReadInt32(); 
+                  
+                  for (int h = 0; h < blocks_count; h++)
+                  {
+                    int count = brm.ReadInt32(); 
+                    
+                    for (int hh = 0; hh < count; hh++)
+                    {
+                      plannode_stuff_2 pns2 = new plannode_stuff_2(brm);
+                    }
+                  }
+              //--------------------------------
+                  brm.ReadInt32();brm.ReadInt32(); // planblok
+                  brm.ReadInt32();brm.ReadInt32(); // size
+                  int planblok_count = brm.ReadInt32(); // Console.WriteLine("planblok_count = " + planblok_count);
+
+                  for (int h = 0; h < planblok_count; h++)
+                  {
+                    planblok_stuff pbs = new planblok_stuff(brm); // Console.WriteLine(pbs);
+                  }
+
+                  // Console.WriteLine("end");
+
+                } // BinaryReader brm
+
+              } // MemoryStream memory
+
+          }
+
+          // region** 72 65 67 69 6F 6E 00 00 (тоже нужные координаты)
+
+          if (array1d[i+0] == 0x72 && array1d[i+1] == 0x65 && array1d[i+2] == 0x67 && array1d[i+3] == 0x69 && 
+              array1d[i+4] == 0x6F && array1d[i+5] == 0x6E && array1d[i+6] == 0x00 && array1d[i+7] == 0x00 && region_flag == true)
+          {
+              region_flag = false;
+              br.BaseStream.Position = i+8; 
+              int BlockSize = br.ReadInt32(); 
+              br.BaseStream.Position = i;
+              Console.WriteLine("region** " + i + " " + BlockSize);
+
+              regionArray = new byte[BlockSize];    // создаём массив нужного размера
+              regionArray = br.ReadBytes(BlockSize); // читаем в него байты из файла с (текущей позиции+8)
+
+              using (MemoryStream memory = new MemoryStream(regionArray)) // сохраняем cellgrup во "временный" файл
+              {
+                using (BinaryReader brm = new BinaryReader(memory)) //  читаем из этого файла 
+                {
+                  brm.ReadInt32();brm.ReadInt32(); // region** // 72 65 67 69 6F 6E 00 00
+                  brm.ReadInt32();brm.ReadInt32(); // size
+
+                  int digit1 = brm.ReadInt32();    // хз
+              //--------------------------------
+                  brm.ReadInt32();brm.ReadInt32(); // symlist* // 73 79 6D 6C 69 73 74 00
+                  brm.ReadInt32();brm.ReadInt32(); // size
+              //--------------------------------
+                  int count1 = brm.ReadInt32(); // Console.WriteLine("count1 = " + count1);
+
+                  for (int h = 0; h < count1; h++)
+                  {
+                    brm.ReadUInt16(); // хз
+                  }
+
+                  if (count1 % 2 != 0) brm.ReadUInt16(); // если число не чётное - читаем добавочные FF FF 
+              //--------------------------------
+                  int digit2 = brm.ReadInt32();    // хз // равно размеру goefile*-блока
+                  brm.ReadInt32(); // FF FF FF FF 
+              //--------------------------------
+                  brm.ReadInt32();brm.ReadInt32(); // goefile* // 67 6F 65 66 69 6C 65 00 
+                  brm.ReadInt32();brm.ReadInt32(); // size
+
+                  brm.ReadInt32();brm.ReadInt32(); // symlist* // 73 79 6D 6C 69 73 74 00 
+                  brm.ReadInt32();brm.ReadInt32(); // size
+              //--------------------------------
+                  int count2 = brm.ReadInt32(); // Console.WriteLine("count2 = " + count2); // количество null-terminated string
+                  
+                  for (int h = 0; h < count2; h++)
+                  {
+                      var str = ReadString(brm); // можно юзать = StringExtension.ReadString(brm); 
+                      //Console.WriteLine("str = " + str);
+                  }
+              //--------------------------------
+                  brm.ReadUInt16(); // FF FF
+              //--------------------------------
+                  brm.ReadInt32();brm.ReadInt32(); // region**
+                  brm.ReadInt32();brm.ReadInt32();brm.ReadInt32();
+
+                  long offset = brm.BaseStream.Position;                  
+                  brm.ReadInt32();brm.ReadInt32(); // packages
+                  int packages_size = brm.ReadInt32(); Console.WriteLine("packages_size = " + packages_size);
+                  brm.BaseStream.Position = offset;
+                  brm.ReadBytes(packages_size); 
+              //--------------------------------
+                  brm.ReadInt32();brm.ReadInt32(); // entities
+                  brm.ReadInt32();brm.ReadInt32(); // size
+
+                  ushort number = brm.ReadUInt16(); Console.WriteLine("number = " + number);
+                  ushort count = brm.ReadUInt16();  Console.WriteLine("count = " + count);
+/*
+                  for (int h = 0; h < count; h++)
+                  {
+                    brm.ReadInt32();brm.ReadInt32(); // entity**
+                    brm.ReadInt32();brm.ReadInt32(); // size
+                  }
+*/
+
+
+
+
+
+
+
+                  // !!! читать и проверять 13 00 00 00 штук 
+
+
+
+
+
+
+
+
+                }
+              }
+          }
+
         }
       }
 
 //88888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888
 
-    int mesh1count = MESHES_IN_CELLGRUP_LIST.Count; Console.WriteLine(mesh1count);
-    int mesh2count = MODELS_IN_BIG_FILE_LIST.Count; Console.WriteLine(mesh2count);
+    int mesh1count = MESHES_IN_CELLGRUP_LIST.Count; // Console.WriteLine(mesh1count);
+    int mesh2count = MODELS_IN_BIG_FILE_LIST.Count; // Console.WriteLine(mesh2count);
 
     foreach (var model in MODELS_IN_BIG_FILE_LIST)
-      model.model_index = model.model_index + MESHES_IN_CELLGRUP_LIST[mesh1count-1].cells_index;
+      model.model_index = model.model_index + MESHES_IN_CELLGRUP_LIST[mesh1count-1].cells_index + 1; // без +1 "крайние" индексы совпадают
 
     MESHES_IN_CELLGRUP_LIST.AddRange(MODELS_IN_BIG_FILE_LIST); // 17 + 26 = 43
 
@@ -298,7 +507,7 @@ sealed class Scene
                   }
               }
 
-///////////// texture* +++	// начала появлятся ошибка :С
+///////////// texture* +++
 /*
               if ( mesh.content[ji+0] == 0x74 && mesh.content[ji+1] == 0x65 && mesh.content[ji+2] == 0x78 && mesh.content[ji+3] == 0x74 && // 74 65 78 74 
                    mesh.content[ji+4] == 0x75 && mesh.content[ji+5] == 0x72 && mesh.content[ji+6] == 0x65 && mesh.content[ji+7] == 0x00 )  // 75 72 65 00 
@@ -600,7 +809,7 @@ sealed class Scene
         foreach (var mesh in MESHES_IN_CELLGRUP_LIST)
         {
 
-            if (mesh.type == "model") m_index = mesh.model_index;
+            if (mesh.type == "model") m_index = mesh.model_index + MESHES_IN_CELLGRUP_LIST[mesh1count-1].cells_index;
             if (mesh.type == "rmd"  ) m_index = mesh.cells_index;
 
 //----------------------------------
@@ -710,7 +919,7 @@ sealed class Scene
 
             qqq++;
 
-        } // для каждой модели в файле cellgrup
+        } // для каждой модели в big-файле 
 
 //-----------------------------------------------------------------------------------------------
 
@@ -747,6 +956,16 @@ sealed class Scene
 
         collada.Save(name + ".dae");
 
+        File.Delete(name + ".txt");
+
+        foreach (var mesh in MESHES_IN_CELLGRUP_LIST) // для каждой модели
+        {
+          using (StreamWriter objw = File.AppendText(name + ".txt"))
+          {
+              objw.WriteLine(mesh.ToString());
+          }
+        }
+
         MESHES_IN_CELLGRUP_LIST.Clear();
         MODELS_IN_BIG_FILE_LIST.Clear();
 
@@ -755,66 +974,50 @@ sealed class Scene
 
 //88888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888
 
-    } // для каждого cellgrup файла
+    } // для каждого big-файла
 
   } // void Main()
 
-} // class 
-
-
-//88888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888
-//88888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888
 //88888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888
 
-[Serializable]
-class Model
-{
-  public long BaseStreamPositionOffset; // смещение модели от начала файла
-
-  public int index; // порядковый номер появления в файле
-  public int model_index; // порядковый номер появления модели в файле
-  public int cells_index; // порядковый номер появления модели в блоке cellgrup
-
-  public string type;    // может быть rdm***** или collmodc или mdlattr*
-
-  public List<byte> content = new List<byte>(); // избыточность 
-
-  public List<Vector3> positionList = new List<Vector3>() ; // вершины
-  public List<Vector3> normalsList  = new List<Vector3>() ; // нормали
-  public List<List<TRI>> subMeshFaces = new List<List<TRI>>(); // грани
-
-  public List<Vector2> uvs0 = new List<Vector2>(); 
-  public List<Vector2> uvs1 = new List<Vector2>(); 
-  public List<List<Vector2>> uvsList = new List<List<Vector2>>();
-
-  public List<float> vtxweighList = new List<float>() ;   // vtxweigh_index 
-  public List<ushort> jointidxList = new List<ushort>();  // jointidx
-
-  public List<ushort> texturesList = new List<ushort>();  // uv index
-  public List<Texture> texture_List = new List<Texture>(); // 
-
-  public List<Mlyrcolr> mlyrcolrList = new List<Mlyrcolr>();
-  public List<Mlyrctrl> mlyrctrlList = new List<Mlyrctrl>();
-  public List<Mtlctrl>  mtlctrlList  = new List<Mtlctrl>();
-  
-  public override string ToString() 
+  public static string ReadString(BinaryReader reader) 
   {
-    return String.Format(
-    "offset= "     + BaseStreamPositionOffset      + "\t\t\t" + 
-    "model_index " + model_index + "\t\t\t" + 
-    "cells_index " + cells_index + "\t\t\t" + 
-    "type "        + type        + "\t\t\t" + 
-    "content "     + content.Count
-    );
+    string result = "";
+    char c;
+    for (int i = 0; i < reader.BaseStream.Length; i++) 
+    {
+      if ((c = (char) reader.ReadByte()) == 0) 
+      {
+        break;
+      }
+      result += c.ToString();
+    }
+    return result;
+  }
+
+//88888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888
+
+} // class
+
+//88888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888
+
+// StringExtension.ReadString(brm);
+public static class StringExtension
+{
+  public static string ReadString(this BinaryReader input)
+  {
+      List<byte> strBytes = new List<byte>();
+      int b;
+      while ((b = input.ReadByte()) != 0x00)
+          strBytes.Add((byte)b);
+      return Encoding.ASCII.GetString(strBytes.ToArray());
   }
 }
 
-
 //88888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888
 //88888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888
 //88888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888
 
-[Serializable]
 class Vector3   //  вершина
 {
   public float x, y, z;
@@ -831,7 +1034,6 @@ class Vector3   //  вершина
 
 //===============================================================================================
 
-[Serializable]
 class Vector2
 {
   public float u, v;
@@ -847,7 +1049,6 @@ class Vector2
 
 //===============================================================================================
 
-[Serializable]
 class TRI  //  грань
 {
   public ushort vi0, vi1, vi2; 
@@ -867,7 +1068,6 @@ class TRI  //  грань
 
 //===============================================================================================
 
-[Serializable]
 class Mlyrcolr // непонятная структура
 {
   public byte r1, g1, b1, a1;
@@ -886,7 +1086,6 @@ class Mlyrcolr // непонятная структура
 
 //===============================================================================================
 
-[Serializable]
 class Mlyrctrl 
 {
   public ushort us1, us2; // ?
@@ -904,7 +1103,6 @@ class Mlyrctrl
 
 //===============================================================================================
 
-[Serializable]
 class Mtlctrl
 {
   public int int_01234; // 3 в psntcnf.model // 4 в 
@@ -921,7 +1119,6 @@ class Mtlctrl
 
 //===============================================================================================
 
-[Serializable]
 class Texture
 {
   // public int g_count; // ???????? откуда здесь это ????????
@@ -1004,6 +1201,113 @@ class CELLMARK
   }
 }
 
+//===============================================================================================
+
+class Planinfo
+{
+  public long offset;
+}
+
+//===============================================================================================
+
+class plannode_stuff_1
+{
+  public Vector3 position; 
+  public ushort number1; // 
+  public ushort number2; // 
+//public int number3; // 
+//public int number4; // 
+
+  public plannode_stuff_1(BinaryReader br)
+  {
+    position = new Vector3(br);
+    number1 = br.ReadUInt16(); 
+    number2 = br.ReadUInt16(); 
+    br.ReadInt32(); 
+    br.ReadInt32(); 
+  }
+}
+
+//===============================================================================================
+
+class plannode_stuff_2
+{
+  public Vector3 position; 
+  public int number3; // 
+
+  public plannode_stuff_2(BinaryReader br)
+  {
+    position = new Vector3(br);
+    number3 = br.ReadInt32(); 
+  }
+}
+
+//===============================================================================================
+
+class planblok_stuff
+{
+  public int number1; // 
+  public int number2; // 
+  public int number3; // hz
+  public float number4; // 
+  
+  public planblok_stuff(BinaryReader br)
+  {
+    number1 = br.ReadInt32(); 
+    number2 = br.ReadInt32(); 
+    number3 = br.ReadInt32(); 
+    number4 = br.ReadSingle(); 
+  }
+
+  public override string ToString()
+  {
+    return String.Format(number1 + " " + number2 + " " + number3 + " " + number4);
+  }
+}
+
 //88888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888
 //88888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888
 //88888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888
+
+class Model
+{
+  public long BaseStreamPositionOffset; // смещение модели от начала файла
+
+  public int index_in_big; // порядковый номер появления в файле
+  public int model_index; // порядковый номер появления модели в файле
+  public int cells_index; // порядковый номер появления модели в блоке cellgrup
+
+  public string type;    // может быть rdm***** или collmodc или mdlattr*
+
+  public List<byte> content = new List<byte>(); // избыточность 
+
+  public List<Vector3> positionList = new List<Vector3>() ; // вершины
+  public List<Vector3> normalsList  = new List<Vector3>() ; // нормали
+  public List<List<TRI>> subMeshFaces = new List<List<TRI>>(); // грани
+
+  public List<Vector2> uvs0 = new List<Vector2>(); 
+  public List<Vector2> uvs1 = new List<Vector2>(); 
+  public List<List<Vector2>> uvsList = new List<List<Vector2>>();
+
+  public List<float> vtxweighList = new List<float>() ;   // vtxweigh_index 
+  public List<ushort> jointidxList = new List<ushort>();  // jointidx
+
+  public List<ushort> texturesList = new List<ushort>();  // uv index
+  public List<Texture> texture_List = new List<Texture>(); // 
+
+  public List<Mlyrcolr> mlyrcolrList = new List<Mlyrcolr>();
+  public List<Mlyrctrl> mlyrctrlList = new List<Mlyrctrl>();
+  public List<Mtlctrl>  mtlctrlList  = new List<Mtlctrl>();
+  
+  public override string ToString() 
+  {
+    return String.Format(
+    "offset= "     + BaseStreamPositionOffset + "\t\t\t" + 
+    "index_in_big "+ index_in_big+ "\t\t\t" + 
+    "model_index " + model_index + "\t\t\t" + 
+    "cells_index " + cells_index + "\t\t\t" + 
+    "type "        + type        + "\t\t\t" + 
+    "content "     + content.Count
+    );
+  }
+}

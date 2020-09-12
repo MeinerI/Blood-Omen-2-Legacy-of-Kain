@@ -1,7 +1,3 @@
-//Console.WriteLine("*");Console.WriteLine(.Count);
-//int qq = 0 ; foreach ( var q in uvi_int ) { Console.WriteLine ( qq + " " + q ) ; qq++ ; }
-#pragma warning disable 169, 414, 649
-
 //жжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжж
   using System; using System.IO; using System.Linq; using System.Text; 
   using System.Text.RegularExpressions; using System.Collections; 
@@ -53,7 +49,7 @@ sealed class Scene
         for ( int i = 0 ; i < array1d.Length ; i++ ) // проходим по всем байтам файла *.big
         {
 
-          // model*** 6D 6F 64 65 6C 00 00 00 (это модели на уровне)
+////////  model*** 6D 6F 64 65 6C 00 00 00 (это модели на уровне)
 
           if (array1d[i+0] == 0x6D && array1d[i+1] == 0x6F && array1d[i+2] == 0x64 && array1d[i+3] == 0x65 && // mode
               array1d[i+4] == 0x6C && array1d[i+5] == 0x00 && array1d[i+6] == 0x00 && array1d[i+7] == 0x00 )  // l***
@@ -72,7 +68,7 @@ sealed class Scene
               MODELS_IN_BIG_FILE_LIST.Add(model);                // добавляем "модель" в список
           }
 
-          // cellgrup 63 65 6C 6C 67 72 75 70 (это блок геометрии статичных объектов на уровне)
+////////  cellgrup 63 65 6C 6C 67 72 75 70 (это блок геометрии статичных объектов на уровне)
 
           if (array1d[i+0] == 0x63 && array1d[i+1] == 0x65 && array1d[i+2] == 0x6C && array1d[i+3] == 0x6C && // cell
               array1d[i+4] == 0x67 && array1d[i+5] == 0x72 && array1d[i+6] == 0x75 && array1d[i+7] == 0x70 )  // grup
@@ -108,7 +104,6 @@ sealed class Scene
 
                         if (type == 6581618) // только для rmd*[****]
                         {
-                        //Console.WriteLine(brm.BaseStream.Position + BlockSize + i);
                           brm.BaseStream.Position = ii+4; // "возвращаемся", чтобы скопировать модель
                           Model mesh = new Model(); // создаём модель
                           mesh.BaseStreamPositionOffset = brm.BaseStream.Position + i; // какая важная строчка! :)
@@ -128,7 +123,7 @@ sealed class Scene
               }
           }
 
-          // cellinst 63 65 6C 6C 69 6E 73 74 (места растановки статичных объектов на уровне)
+////////  cellinst 63 65 6C 6C 69 6E 73 74 (места растановки статичных объектов на уровне)
 
           if (array1d[i+0] == 0x63 && array1d[i+1] == 0x65 && array1d[i+2] == 0x6C && array1d[i+3] == 0x6C && // cell
               array1d[i+4] == 0x69 && array1d[i+5] == 0x6E && array1d[i+6] == 0x73 && array1d[i+7] == 0x74)   // inst
@@ -144,7 +139,7 @@ sealed class Scene
             }
           }
           
-          // cellmark 63 65 6C 6C 6D 61 72 6B (места расстановки моделей на уровне)
+////////  cellmark 63 65 6C 6C 6D 61 72 6B (места расстановки моделей на уровне)
 
           if (array1d[i+0] == 0x63 && array1d[i+1] == 0x65 && array1d[i+2] == 0x6C && array1d[i+3] == 0x6C && // cell
               array1d[i+4] == 0x6D && array1d[i+5] == 0x61 && array1d[i+6] == 0x72 && array1d[i+7] == 0x6B)   // mark
@@ -160,7 +155,7 @@ sealed class Scene
             }
           }
 
-          // planinfo 70 6C 61 6E 69 6E 66 6F (тоже нужные координаты)
+////////  planinfo 70 6C 61 6E 69 6E 66 6F (тоже нужные координаты)
 
           if (array1d[i+0] == 0x70 && array1d[i+1] == 0x6C && array1d[i+2] == 0x61 && array1d[i+3] == 0x6E &&
               array1d[i+4] == 0x69 && array1d[i+5] == 0x6E && array1d[i+6] == 0x66 && array1d[i+7] == 0x6F && planinfo_flag == true)
@@ -169,194 +164,83 @@ sealed class Scene
               br.BaseStream.Position = i+8;
               int BlockSize = br.ReadInt32();
               br.BaseStream.Position = i;
-              Console.WriteLine("planinfo " + i + " " + BlockSize);
 
-              planinfoArray = new byte[BlockSize];    // создаём массив нужного размера
-              planinfoArray = br.ReadBytes(BlockSize); // читаем в него байты из файла с (текущей позиции+8)
+              br.ReadInt32();br.ReadInt32(); // planinfo // 70 6C 61 6E 69 6E 66 6F
+              br.ReadInt32();br.ReadInt32(); // size
 
-              using (MemoryStream memory = new MemoryStream(planinfoArray)) // сохраняем cellgrup во "временный" файл
+              int digit = br.ReadInt32();    // хз
+          //--------------------------------
+              br.ReadInt32();br.ReadInt32(); // symlist* // 73 79 6D 6C 69 73 74 00
+              br.ReadInt32();br.ReadInt32(); // size
+              br.ReadInt32(); // содержимое
+          //--------------------------------
+              int size = br.ReadInt32(); 
+              
+    //костыль{
+              long offset = br.BaseStream.Position;
+              int ffffffff1 = br.ReadInt32(); // бывает встречается 
+              int ffffffff2 = 0;
+              if (ffffffff1 == -1) ffffffff2 = br.ReadInt32(); 
+              else br.BaseStream.Position = offset;
+    //костыль}
+
+              br.ReadInt32();br.ReadInt32(); // planinfo // 70 6C 61 6E 69 6E 66 6F
+              br.ReadInt32(); // size
+              br.ReadInt32(); // хз 
+              
+              br.ReadInt32();br.ReadInt32(); // plannode // 70 6C 61 6E 6E 6F 64 65
+              br.ReadInt32();br.ReadInt32(); // size
+
+              ushort hz1 = br.ReadUInt16(); // хз
+              ushort cnt = br.ReadUInt16(); // количество 
+              ushort hz3 = br.ReadUInt16(); // хз
+              ushort ffff= br.ReadUInt16(); // FF FF // "выравниватель"
+          //--------------------------------
+              int one_hundred = br.ReadInt32(); // 64 00 00 00
+
+              for (int h = 0; h < one_hundred; h++)
               {
-                using (BinaryReader brm = new BinaryReader(memory)) //  читаем из этого файла 
-                {
-                  brm.ReadInt32();brm.ReadInt32(); // planinfo // 70 6C 61 6E 69 6E 66 6F
-                  brm.ReadInt32();brm.ReadInt32(); // size
+                plannode_stuff_1 pns1 = new plannode_stuff_1(br);
+              }
+          //--------------------------------
+              int five_hundred = br.ReadInt32(); // F4 01 00 00 
 
-                  int digit = brm.ReadInt32();    // хз
-              //--------------------------------
-                  brm.ReadInt32();brm.ReadInt32(); // symlist* // 73 79 6D 6C 69 73 74 00
-                  brm.ReadInt32();brm.ReadInt32(); // size
-                  brm.ReadInt32(); // содержимое
-              //--------------------------------
-                  int size = brm.ReadInt32();      // 
-//костыль{
-                  long offset = brm.BaseStream.Position;
-
-                  int ffffffff1 = brm.ReadInt32(); 
-                  int ffffffff2 = 0;
-                  if (ffffffff1 == -1) 
-                  {
-                    ffffffff2 = brm.ReadInt32(); 
-                    // Console.WriteLine(ffffffff1 + " " + ffffffff2);
-                  }
-                  else brm.BaseStream.Position = offset;
-//костыль}
-                  brm.ReadInt32();brm.ReadInt32(); // planinfo // 70 6C 61 6E 69 6E 66 6F
-                  brm.ReadInt32(); // size
-                  brm.ReadInt32(); // хз 
-                  
-                  brm.ReadInt32();brm.ReadInt32(); // plannode // 70 6C 61 6E 6E 6F 64 65
-                  brm.ReadInt32();brm.ReadInt32(); // size
-
-                  ushort hz1 = brm.ReadUInt16(); // хз
-                  ushort cnt = brm.ReadUInt16(); // количество 
-                  ushort hz3 = brm.ReadUInt16(); // хз
-                  ushort ffff= brm.ReadUInt16(); // FF FF // "выравниватель"
-              //--------------------------------
-                  int one_hundred = brm.ReadInt32(); // 64 00 00 00
-
-                  for (int h = 0; h < one_hundred; h++)
-                  {
-                    plannode_stuff_1 pns1 = new plannode_stuff_1(brm);
-                  }
-              //--------------------------------
-                  int five_hundred = brm.ReadInt32(); // F4 01 00 00 
-
-                  for (int h = 0; h < five_hundred; h++)
-                  {
-                    brm.ReadInt32();brm.ReadInt32();
-                  }
-              //--------------------------------
-                  int blocks_count = brm.ReadInt32(); 
-                  
-                  for (int h = 0; h < blocks_count; h++)
-                  {
-                    int count = brm.ReadInt32(); 
-                    
-                    for (int hh = 0; hh < count; hh++)
-                    {
-                      plannode_stuff_2 pns2 = new plannode_stuff_2(brm);
-                    }
-                  }
-              //--------------------------------
-                  brm.ReadInt32();brm.ReadInt32(); // planblok
-                  brm.ReadInt32();brm.ReadInt32(); // size
-                  int planblok_count = brm.ReadInt32(); // Console.WriteLine("planblok_count = " + planblok_count);
-
-                  for (int h = 0; h < planblok_count; h++)
-                  {
-                    planblok_stuff pbs = new planblok_stuff(brm); // Console.WriteLine(pbs);
-                  }
-
-                  // Console.WriteLine("end");
-
-                } // BinaryReader brm
-
-              } // MemoryStream memory
-
-          }
-
-          // region** 72 65 67 69 6F 6E 00 00 (тоже нужные координаты)
-
-          if (array1d[i+0] == 0x72 && array1d[i+1] == 0x65 && array1d[i+2] == 0x67 && array1d[i+3] == 0x69 && 
-              array1d[i+4] == 0x6F && array1d[i+5] == 0x6E && array1d[i+6] == 0x00 && array1d[i+7] == 0x00 && region_flag == true)
-          {
-              region_flag = false;
-              br.BaseStream.Position = i+8; 
-              int BlockSize = br.ReadInt32(); 
-              br.BaseStream.Position = i;
-              Console.WriteLine("region** " + i + " " + BlockSize);
-
-              regionArray = new byte[BlockSize];    // создаём массив нужного размера
-              regionArray = br.ReadBytes(BlockSize); // читаем в него байты из файла с (текущей позиции+8)
-
-              using (MemoryStream memory = new MemoryStream(regionArray)) // сохраняем cellgrup во "временный" файл
+              for (int h = 0; h < five_hundred; h++)
               {
-                using (BinaryReader brm = new BinaryReader(memory)) //  читаем из этого файла 
+                br.ReadInt32();br.ReadInt32();
+              }
+          //--------------------------------
+              int blocks_count = br.ReadInt32(); 
+              
+              for (int h = 0; h < blocks_count; h++)
+              {
+                int count = br.ReadInt32(); 
+                
+                for (int hh = 0; hh < count; hh++)
                 {
-                  brm.ReadInt32();brm.ReadInt32(); // region** // 72 65 67 69 6F 6E 00 00
-                  brm.ReadInt32();brm.ReadInt32(); // size
-
-                  int digit1 = brm.ReadInt32();    // хз
-              //--------------------------------
-                  brm.ReadInt32();brm.ReadInt32(); // symlist* // 73 79 6D 6C 69 73 74 00
-                  brm.ReadInt32();brm.ReadInt32(); // size
-              //--------------------------------
-                  int count1 = brm.ReadInt32(); // Console.WriteLine("count1 = " + count1);
-
-                  for (int h = 0; h < count1; h++)
-                  {
-                    brm.ReadUInt16(); // хз
-                  }
-
-                  if (count1 % 2 != 0) brm.ReadUInt16(); // если число не чётное - читаем добавочные FF FF 
-              //--------------------------------
-                  int digit2 = brm.ReadInt32();    // хз // равно размеру goefile*-блока
-                  brm.ReadInt32(); // FF FF FF FF 
-              //--------------------------------
-                  brm.ReadInt32();brm.ReadInt32(); // goefile* // 67 6F 65 66 69 6C 65 00 
-                  brm.ReadInt32();brm.ReadInt32(); // size
-
-                  brm.ReadInt32();brm.ReadInt32(); // symlist* // 73 79 6D 6C 69 73 74 00 
-                  brm.ReadInt32();brm.ReadInt32(); // size
-              //--------------------------------
-                  int count2 = brm.ReadInt32(); // Console.WriteLine("count2 = " + count2); // количество null-terminated string
-                  
-                  for (int h = 0; h < count2; h++)
-                  {
-                      var str = ReadString(brm); // можно юзать = StringExtension.ReadString(brm); 
-                      //Console.WriteLine("str = " + str);
-                  }
-              //--------------------------------
-                  brm.ReadUInt16(); // FF FF
-              //--------------------------------
-                  brm.ReadInt32();brm.ReadInt32(); // region**
-                  brm.ReadInt32();brm.ReadInt32();brm.ReadInt32();
-
-                  long offset = brm.BaseStream.Position;                  
-                  brm.ReadInt32();brm.ReadInt32(); // packages
-                  int packages_size = brm.ReadInt32(); Console.WriteLine("packages_size = " + packages_size);
-                  brm.BaseStream.Position = offset;
-                  brm.ReadBytes(packages_size); 
-              //--------------------------------
-                  brm.ReadInt32();brm.ReadInt32(); // entities
-                  brm.ReadInt32();brm.ReadInt32(); // size
-
-                  ushort number = brm.ReadUInt16(); Console.WriteLine("number = " + number);
-                  ushort count = brm.ReadUInt16();  Console.WriteLine("count = " + count);
-/*
-                  for (int h = 0; h < count; h++)
-                  {
-                    brm.ReadInt32();brm.ReadInt32(); // entity**
-                    brm.ReadInt32();brm.ReadInt32(); // size
-                  }
-*/
-
-
-
-
-
-
-
-                  // !!! читать и проверять 13 00 00 00 штук 
-
-
-
-
-
-
-
-
+                  plannode_stuff_2 pns2 = new plannode_stuff_2(br);
                 }
+              }
+          //--------------------------------
+              br.ReadInt32();br.ReadInt32(); // planblok
+              br.ReadInt32();br.ReadInt32(); // size
+
+              int planblok_count = br.ReadInt32(); 
+
+              for (int h = 0; h < planblok_count; h++)
+              {
+                planblok_stuff pbs = new planblok_stuff(br); 
               }
           }
 
-        }
-      }
+        } // for 
+
+      } // using
 
 //88888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888
 
-    int mesh1count = MESHES_IN_CELLGRUP_LIST.Count; // Console.WriteLine(mesh1count);
-    int mesh2count = MODELS_IN_BIG_FILE_LIST.Count; // Console.WriteLine(mesh2count);
+    int mesh1count = MESHES_IN_CELLGRUP_LIST.Count; 
+    int mesh2count = MODELS_IN_BIG_FILE_LIST.Count; 
 
     foreach (var model in MODELS_IN_BIG_FILE_LIST)
       model.model_index = model.model_index + MESHES_IN_CELLGRUP_LIST[mesh1count-1].cells_index + 1; // без +1 "крайние" индексы совпадают
@@ -372,7 +256,7 @@ sealed class Scene
             for ( int ji = 0 ; ji < mesh.content.Count ; ji++ )
             {
 
-              // ИЩЕМ ВЕРШИНЫ // v // если нашли строку "position" = 00 00 00 00 70 6F 73 69 74 69 6F 6E 
+////////////  ИЩЕМ ВЕРШИНЫ // v // если нашли строку "position" = 00 00 00 00 70 6F 73 69 74 69 6F 6E 
 
               if (mesh.content[ji+0] == 0x70 && mesh.content[ji+1] == 0x6F && mesh.content[ji+2] == 0x73 && mesh.content[ji+3] == 0x69 && // 70 6F 73 69 
                   mesh.content[ji+4] == 0x74 && mesh.content[ji+5] == 0x69 && mesh.content[ji+6] == 0x6F && mesh.content[ji+7] == 0x6E )  // 74 69 6F 6E 
@@ -384,7 +268,7 @@ sealed class Scene
                   mesh.positionList.Add ( new Vector3(br) ) ; 
               }
 
-///////////// ИЩЕМ Vn (нормали) 
+////////////  ИЩЕМ Vn (нормали) 
 
               if ( mesh.content[ji+0] == 0x6E && mesh.content[ji+1] == 0x6F && mesh.content[ji+2] == 0x72 && mesh.content[ji+3] == 0x6D && // 6E 6F 72 6D 
                    mesh.content[ji+4] == 0x61 && mesh.content[ji+5] == 0x6C && mesh.content[ji+6] == 0x73 && mesh.content[ji+7] == 0x00 )  // 61 6C 73 00
@@ -395,19 +279,20 @@ sealed class Scene
                   mesh.normalsList.Add(new Vector3(br));
               }
 
-///////////// ИЩЕМ ГРАНИ FACES // 70 72 69 6D // 73 ( 00 00 00 )
+////////////  ИЩЕМ ГРАНИ FACES // 70 72 69 6D 73 00 00 00
 
-              if ( mesh.content[ji+0] == 0x70 && mesh.content[ji+1] == 0x72 && mesh.content[ji+2] == 0x69 && mesh.content[ji+3] == 0x6D ) // 70 72 69 6D 73
+              if ( mesh.content[ji+0] == 0x70 && mesh.content[ji+1] == 0x72 && mesh.content[ji+2] == 0x69 && mesh.content[ji+3] == 0x6D && // 70 72 69 6D
+                   mesh.content[ji+4] == 0x73 && mesh.content[ji+5] == 0x00 && mesh.content[ji+6] == 0x00 && mesh.content[ji+7] == 0x00 )  // 73 00 00 00
               {
                 br.BaseStream.Position = mesh.BaseStreamPositionOffset + ji + 16;
-                
+
                 int primsCount = br.ReadInt32();
 
                 for ( int j = 0 ; j < primsCount; j++ )	
                 {
                   int faceNumber = br.ReadInt32();  
                   int faceCount = br.ReadInt32();  
-                  int faceSize = br.ReadInt32();  
+                  int faceSize = br.ReadInt32(); 
 
                   List<TRI> face = new List<TRI>();
 
@@ -416,13 +301,40 @@ sealed class Scene
 
                   mesh.subMeshFaces.Add(face);
 
-                  for ( int jj = 0 ; jj < 10; jj++ ) br.ReadInt32(); // непонятные данные, мб для наложения текстур
-
                   if ((faceCount % 2) != 0) br.ReadUInt16(); // для "выравнивания" читается FF FF
+
+              //  непонятные данные, мб для наложения текстур, не проверял
+              //  {
+                    int hz_count0 = br.ReadUInt16();
+                    br.ReadUInt16(); // всегда 01 00 ?
+
+                    int hz_count1 = br.ReadInt32(); 
+                    for ( int jj = 0 ; jj < hz_count1; jj++ ) 
+                      br.ReadInt32();
+
+                    int hz_count01 = br.ReadInt32(); // обычно равно hz_count0
+                    for ( int jj = 0 ; jj < hz_count01; jj++ ) 
+                    {
+                      br.ReadSingle(); br.ReadSingle(); 
+                    }
+                    
+                    int hz_count02 = br.ReadInt32(); // обычно равно hz_count0
+                    for ( int jj = 0 ; jj < hz_count02; jj++ ) 
+                    {
+                      br.ReadSingle(); br.ReadSingle(); br.ReadSingle(); br.ReadSingle(); 
+                    }
+                    
+                    br.ReadSingle(); br.ReadSingle(); 
+                    br.ReadSingle(); br.ReadSingle(); 
+                    
+                    br.ReadInt32(); // 00 00 00 00 
+                    br.ReadInt32(); // 00 00 FF FF 
+              //  }
                 }
+
               }
 
-///////////// ИЩЕМ uvs index , индексы текстурных координат // строку "textures" = // (00 00 FF FF) 74 65 78 74 75 72 65 73
+////////////  ИЩЕМ uvs index , индексы текстурных координат // строку "textures" = // (00 00 FF FF) 74 65 78 74 75 72 65 73
 
     //        if ( mesh.content[ji+0] == 0x00 && mesh.content[ji+1] == 0x00 && mesh.content[ji+2]  == 0x00 && mesh.content[ji+3]  == 0x00 && // это необходимо ?
               if ( mesh.content[ji+0] == 0x74 && mesh.content[ji+1] == 0x65 && mesh.content[ji+2] == 0x78 && mesh.content[ji+3] == 0x74 && // если да
@@ -434,15 +346,13 @@ sealed class Scene
                     mesh.texturesList.Add (br.ReadUInt16()) ; 
               }
 
-///////////// ТЕКСТУРНЫЕ  КООРДИНАТЫ // vt // uvs. // 75 76 73 00 00 00 00 00 
+////////////  ТЕКСТУРНЫЕ  КООРДИНАТЫ // vt // uvs. // 75 76 73 00 00 00 00 00 
               // может попастся два набора, поэтому пока что сохраняем смещение, а затем читаем что надо
 
               if(mesh.content[ji+0] == 0x75 && mesh.content[ji+1] == 0x76 && mesh.content[ji+2] == 0x73 && mesh.content[ji+3] == 0x00 ) // 75 76 73 00 
                 uvs_offset_int_list.Add(ji);
 
-///////////////
-
-              // mdlattr*
+////////////  mdlattr*
 
               if ( mesh.content[ji+0] == 0x6D && mesh.content[ji+1] == 0x64 && mesh.content[ji+2] == 0x6C && mesh.content[ji+3] == 0x61 &&
                    mesh.content[ji+4] == 0x74 && mesh.content[ji+5] == 0x74 && mesh.content[ji+6] == 0x72 && mesh.content[ji+7] == 0x00)
@@ -459,7 +369,7 @@ sealed class Scene
                   br.ReadInt32();
               }
 
-///////////// mtlctrl* // 6D 74 6C 63 74 72 6C 00 
+////////////  mtlctrl* // 6D 74 6C 63 74 72 6C 00 
 
               if ( mesh.content[ji+0] == 0x6D && mesh.content[ji+1] == 0x74 && mesh.content[ji+2] == 0x6C && mesh.content[ji+3] == 0x63 && // 6D 74 6C 63 
                    mesh.content[ji+4] == 0x74 && mesh.content[ji+5] == 0x72 && mesh.content[ji+6] == 0x6C && mesh.content[ji+7] == 0x00)   // 74 72 6C 00 
@@ -473,7 +383,7 @@ sealed class Scene
                   }
               }
 
-///////////// mlyrcolr ??? привильно ли я добавляю в список? по "сомнению" надо выделить три "строки" в один объект
+////////////  mlyrcolr ??? привильно ли я добавляю в список? по "сомнению" надо выделить три "строки" в один объект
 
               if ( mesh.content[ji+0] == 0x6D && mesh.content[ji+1] == 0x6C && mesh.content[ji+2] == 0x79 && mesh.content[ji+3] == 0x72 && // 6D 6C 79 72 
                    mesh.content[ji+4] == 0x63 && mesh.content[ji+5] == 0x6F && mesh.content[ji+6] == 0x6C && mesh.content[ji+7] == 0x72 )  // 63 6F 6C 72 
@@ -491,7 +401,7 @@ sealed class Scene
                   }
               }
 
-///////////// mlyrctrl +++
+////////////  mlyrctrl +++
 
               if ( mesh.content[ji+0] == 0x6D && mesh.content[ji+1] == 0x6C && mesh.content[ji+2] == 0x79 && mesh.content[ji+3] == 0x72 && // 6D 6C 79 72 
                    mesh.content[ji+4] == 0x63 && mesh.content[ji+5] == 0x74 && mesh.content[ji+6] == 0x72 && mesh.content[ji+7] == 0x6C )  // 63 74 72 6C 
@@ -507,7 +417,7 @@ sealed class Scene
                   }
               }
 
-///////////// texture* +++
+////////////  texture* +++
 /*
               if ( mesh.content[ji+0] == 0x74 && mesh.content[ji+1] == 0x65 && mesh.content[ji+2] == 0x78 && mesh.content[ji+3] == 0x74 && // 74 65 78 74 
                    mesh.content[ji+4] == 0x75 && mesh.content[ji+5] == 0x72 && mesh.content[ji+6] == 0x65 && mesh.content[ji+7] == 0x00 )  // 75 72 65 00 
@@ -523,7 +433,7 @@ sealed class Scene
                   }
               }
 */
-///////////// vtxweigh +++
+////////////  vtxweigh +++
 
               if ( mesh.content[ji+0] == 0x76 && mesh.content[ji+1] == 0x74 && mesh.content[ji+2] == 0x78 && mesh.content[ji+3] == 0x77 && // 76 74 78 77 
                    mesh.content[ji+4] == 0x65 && mesh.content[ji+5] == 0x69 && mesh.content[ji+6] == 0x67 && mesh.content[ji+7] == 0x68 )  // 65 69 67 68
@@ -534,7 +444,7 @@ sealed class Scene
                     mesh.vtxweighList.Add(br.ReadSingle());
               }
 
-///////////// jointidx +++
+////////////  jointidx +++
 
               if ( mesh.content[ji+0] == 0x6A && mesh.content[ji+1] == 0x6F && mesh.content[ji+2] == 0x69 && mesh.content[ji+3] == 0x6E && // 6A 6F 69 6E // join
                    mesh.content[ji+4] == 0x74 && mesh.content[ji+5] == 0x69 && mesh.content[ji+6] == 0x64 && mesh.content[ji+7] == 0x78 )  // 74 69 64 78 // tidx
@@ -550,7 +460,7 @@ sealed class Scene
                   if (count % 2 != 0) ffff = br.ReadUInt16(); 
               }
 
-///////////// collmodc
+////////////  collmodc
 
             } // для массива внутри модели 
 
@@ -558,7 +468,7 @@ sealed class Scene
 //88888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888
 //88888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888
 
-              if (uvs_offset_int_list.Count > 0)
+              if (uvs_offset_int_list.Count > 0) // читаем первое UV
               {
                 br.BaseStream.Position = mesh.BaseStreamPositionOffset + uvs_offset_int_list[0] + 8;
                 int BlockSizeU0 = br.ReadInt32();  br.ReadInt32();
@@ -571,7 +481,7 @@ sealed class Scene
                 mesh.uvsList.Add(mesh.uvs0);
               }
 
-              if (uvs_offset_int_list.Count > 1)
+              if (uvs_offset_int_list.Count > 1) // читаем второе UV
               {
                 br.BaseStream.Position = mesh.BaseStreamPositionOffset + uvs_offset_int_list[1] + 8;
                 int BlockSizeU1 = br.ReadInt32();  br.ReadInt32();

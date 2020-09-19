@@ -1,48 +1,57 @@
-using System;
-using System.IO;
-using System.Linq;
-using System.Collections;
-using System.Collections.Generic;
+using System; using System.IO; 
+//using System.Linq;
+using System.Collections.Generic; 
 
-sealed class big2obj
+class Finder
 {
-		static void Main()
-		{
-				string[] files = Directory.GetFiles(Directory.GetCurrentDirectory(), "*.big", SearchOption.AllDirectories) ; 
+  static void Main()  
+  {
+    var big_file_names = Directory.GetFiles(Directory.GetCurrentDirectory(), "*.big",  SearchOption.AllDirectories); 
 
-				foreach ( var file in files ) // для каждой строки , содержащей имя файла.big , содержащейся в массиве строк 
-				{
-						int dds_counter = 0 ; // счётчик появления текстур в файле , используется в качестве постфикса к имени текстуры 
+    foreach ( var fname in big_file_names )
+    {
+      int dds_counter = 0 ; 
+      byte[] BigFileBytesArray = File.ReadAllBytes(fname); 
 
-						byte[] array1d = File.ReadAllBytes(file) ; // читаем весь файл в массив байт
+      using (var br = new BinaryReader(File.Open(fname, FileMode.Open)))
+      {
+        for ( int offset = 0 ; offset < BigFileBytesArray.Length ; offset++ ) 
+        {
+          if (FindHexString("texture\0", BigFileBytesArray, offset    ) && 
+              FindHexString("symlist\0", BigFileBytesArray, offset+20))
+          {
+            br.BaseStream.Position = offset + 40;
+            int ddsSize = br.ReadInt32(); 
 
-						for ( int i = 0 ; i < array1d.Length - 42 ; i++ ) // вдоль всего файла , проходим каждый байт
-						{
-							//если нашли "сигнатуру" texture и следущую за ней "сигнатуру" symlist , то это точно dds-файл 
-							//if ( array1d[i+0] == 0x44 & array1d[i+1] == 0x44 & array1d[i+2] == 0x53 & array1d[i+3] == 0x20 & array1d[i+4] == 0x7C ) // нашли DDS 20 7C // не всегда подходит
-								if ( array1d[i+0] == 0x74 & array1d[i+1] == 0x65 & array1d[i+2] == 0x78 & array1d[i+3] == 0x74 & // text
-										 array1d[i+4] == 0x75 & array1d[i+5] == 0x72 & array1d[i+6] == 0x65 & array1d[i+7] == 0x00 & // ure?
-										 array1d[i+20] == 0x73 & array1d[i+21] == 0x79 & array1d[i+22] == 0x6D & array1d[i+23] == 0x6C & // syml
-										 array1d[i+24] == 0x69 & array1d[i+25] == 0x73 & array1d[i+26] == 0x74 & array1d[i+27] == 0x00 ) // ist?
-								{
-										byte[] ddsSize_bytes = { array1d[i+40+0] ,	array1d[i+40+1] ,	array1d[i+40+2] ,	array1d[i+40+3] } ;	// прочитали байты хранящие размер dds файла 
-										int ddsSize = BitConverter.ToInt32 ( ddsSize_bytes , 0 ) ; // = размер dds файла в байтах в чисовом виде // иногда здесь нужен long
+            int ff_skip = 0; //надо скипнуть FF
 
-										byte[] ddsArray = array1d.Skip(i+44).Take(ddsSize).Skip(0).Take(array1d.Length).SkipWhile(x =>(x==0xFF)).ToArray(); // кому надо - поймёт :D
+            if (FindHexString("DDS |\0\0\0", BigFileBytesArray, offset+44)) ff_skip = 44;
+            if (FindHexString("DDS |\0\0\0", BigFileBytesArray, offset+48)) ff_skip = 48;
+            if (FindHexString("DDS |\0\0\0", BigFileBytesArray, offset+52)) ff_skip = 52;
+            if (FindHexString("DDS |\0\0\0", BigFileBytesArray, offset+56)) ff_skip = 56;
 
-										string ddsWritePath = file + dds_counter + ".dds" ; // создаём имя dds файла 
-																// в виде filename.big1.dds
+            br.BaseStream.Position = offset + ff_skip;
 
-										File.WriteAllBytes( ddsWritePath , ddsArray ) ; // записываем все байты из массива в файл
+// array1d.Skip(offset+44).Take(ddsSize).Skip(0).Take(BigFileBytesArray.Length).SkipWhile(x =>(x==0xFF)).ToArray();
 
-										dds_counter++ ; // увеличиваем префикс имени файла
+            byte[] ddsByteArray = new byte[ddsSize];
+                    ddsByteArray = br.ReadBytes(ddsSize); 
 
-								} // if 
+            string ddsWritePath = fname + dds_counter + ".dds" ; 
+            File.WriteAllBytes( ddsWritePath , ddsByteArray ) ; 
 
-						} // for 
+            dds_counter++ ; // увеличиваем префикс имени файла
+          }
+        }
+      }
+    }
+  }
 
-		 		} // foreach 
-
-		} // Main
-
-} // class
+  static bool FindHexString(string str, IReadOnlyList<byte> list, int i)
+  {
+    if (list[i+0] == str[0] && list[i+1] == str[1] && list[i+2] == str[2] && list[i+3] == str[3] &&
+        list[i+4] == str[4] && list[i+5] == str[5] && list[i+6] == str[6] && list[i+7] == str[7] )
+    return true;
+    return false;
+  }
+}

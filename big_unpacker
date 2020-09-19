@@ -1,0 +1,93 @@
+//жжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжж
+  using System; using System.IO; using System.Linq; 
+  using System.Collections; using System.Collections.Generic; 
+//жжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжж
+
+class Finder
+{
+  static int BlockSize;
+  static string WritePath;
+  static string bigname;
+  static int counter = 0;
+  static int offset = 0;
+	static byte[] ByteArray;
+	static byte[] array1d;
+	static BinaryReader br;
+
+	static void Main()	
+	{
+    var filesName = Directory.GetFiles(
+    Directory.GetCurrentDirectory(), "*.big",  SearchOption.AllDirectories); 
+
+    foreach ( string bigFname in filesName )
+    {
+      array1d = File.ReadAllBytes(bigFname); 
+      bigname = bigFname;
+      using (br = new BinaryReader(File.Open(bigFname, FileMode.Open)))
+      {
+        for ( offset = 0 ; offset < array1d.Length ; offset++ ) 
+        {
+          if (FindString("goefile\0", offset) && FindString("symlist\0", offset+16))
+          {
+            byte[] temp = array1d.Take(16).ToArray(); 
+            br.BaseStream.Position = offset+24;
+            BlockSize = br.ReadInt32(); 
+            ByteArray = new byte[BlockSize]; 
+            br.BaseStream.Position = offset+16;
+            ByteArray = br.ReadBytes(BlockSize);
+
+            IEnumerable<byte> rv = temp.Concat(ByteArray);
+
+            WritePath = bigname.Replace(".big", "goefile") + (counter++); 
+            File.WriteAllBytes( WritePath, rv.ToArray() ) ; 
+          }
+
+          FindAndSaveBlock("bpackage",   offset);
+          FindAndSaveBlock("cellgrup",   offset);
+          FindAndSaveBlock("effect\0\0", offset);
+          FindAndSaveBlock("lipsync\0",  offset);
+          FindAndSaveBlock("litedata",   offset);
+          FindAndSaveBlock("model\0\0\0",offset);
+          FindAndSaveBlock("planinfo",   offset);
+          FindAndSaveBlock("region\0\0", offset);
+          FindAndSaveBlock("sample\0\0", offset);
+          FindAndSaveBlock("sound\0\0\0",offset);
+          FindAndSaveBlock("strmfile",   offset);
+          FindAndSaveBlock("texture\0",  offset);
+          FindAndSaveBlock("tunedata",   offset);
+          FindAndSaveBlock("animatio",   offset);
+          FindAndSaveBlock("animreel",   offset);
+        }
+      }
+    }
+  }
+
+//жжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжж
+
+  static bool FindString(string str, int i)
+  {
+    if (array1d[i+0] == str[0] && array1d[i+1] == str[1] && array1d[i+2] == str[2] && array1d[i+3] == str[3] &&
+        array1d[i+4] == str[4] && array1d[i+5] == str[5] && array1d[i+6] == str[6] && array1d[i+7] == str[7] )
+    return true;
+    return false;   
+  }
+
+//жжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжж
+
+  static void FindAndSaveBlock(string str, int i)
+  {
+    if (FindString(str, offset) && FindString("symlist\0", offset+20))
+    {
+      br.BaseStream.Position = offset + 8;
+      BlockSize = br.ReadInt32(); 
+      ByteArray = new byte[BlockSize];
+      br.BaseStream.Position = offset;
+      ByteArray = br.ReadBytes(BlockSize); 
+      WritePath = bigname.Replace(".big", str.Replace("\0", "")) + (counter++); 
+      File.WriteAllBytes( WritePath, ByteArray ) ; 
+    }
+  }
+
+//жжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжжж
+
+}
